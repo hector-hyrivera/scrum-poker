@@ -1,5 +1,5 @@
 services:
-  app:
+  frontend:
     image: ghcr.io/${GITHUB_USERNAME}/scrum-poker:latest
     ports:
       - "80:80"
@@ -8,6 +8,22 @@ services:
       - NODE_ENV=production
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - backend
+
+  backend:
+    image: ghcr.io/${GITHUB_USERNAME}/scrum-poker-server:latest
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
