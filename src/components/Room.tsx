@@ -65,10 +65,6 @@ const Room = () => {
       console.log('Votes reset');
       setIsRevealed(false);
       setVote(null);
-      // Force a re-render of the voting buttons
-      setParticipants(prevParticipants => 
-        prevParticipants.map(p => ({ ...p, vote: null }))
-      );
     };
 
     const handleRoomNotFound = () => {
@@ -111,6 +107,7 @@ const Room = () => {
 
   const handleReset = () => {
     if (!roomId) return;
+    setVote(null); // Reset local vote state immediately
     socket.emit('reset', roomId);
   };
 
