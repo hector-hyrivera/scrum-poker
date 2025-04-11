@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply text-gray-800 antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-xl shadow-soft transition-all duration-300 hover:shadow-hover;
+  }
+  
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500;
+  }
+  
+  .btn-accent {
+    @apply btn bg-accent-500 text-white hover:bg-accent-600 focus:ring-accent-500;
+  }
+  
+  .input {
+    @apply w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200;
+  }
+  
+  .vote-card {
+    @apply card p-4 text-center cursor-pointer hover:bg-primary-50 transition-colors duration-200;
+  }
+  
+  .vote-value {
+    @apply text-2xl font-bold text-primary-600;
+  }
+  
+  .vote-label {
+    @apply text-sm text-gray-500 mt-1;
+  }
+  
+  .participant-card {
+    @apply flex justify-between items-center p-3 bg-gray-50 rounded-lg;
+  }
+  
+  .participant-name {
+    @apply font-medium text-gray-700;
+  }
+  
+  .participant-vote {
+    @apply px-3 py-1 rounded-full font-medium transition-all duration-200;
+  }
+  
+  .participant-vote.revealed {
+    @apply bg-primary-100 text-primary-700;
+  }
+  
+  .participant-vote.hidden {
+    @apply bg-gray-200 text-gray-600;
+  }
+  
+  .participant-vote.voted {
+    @apply bg-accent-100 text-accent-700;
+  }
+
+  .room-header {
+    @apply bg-white rounded-lg shadow-soft p-8 mb-8;
+  }
+
+  .room-actions {
+    @apply bg-white rounded-lg shadow-soft p-8 mb-8;
+  }
+
+  .room-participants {
+    @apply bg-white rounded-lg shadow-soft p-8;
+  }
+
+  .share-link {
+    @apply flex items-center space-x-4 bg-background-dark rounded-lg p-4;
+  }
+
+  .share-input {
+    @apply flex-1 bg-white rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-1 focus:ring-primary;
+  }
+
+  .copy-btn {
+    @apply btn btn-secondary px-4 py-2;
+  }
+
+  .qr-btn {
+    @apply btn btn-accent px-4 py-2;
+  }
+}
