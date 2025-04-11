@@ -2,7 +2,7 @@ services:
   frontend:
     image: ghcr.io/${GITHUB_USERNAME}/scrum-poker:latest
     ports:
-      - "80:80"
+      - "8085:80"
     restart: unless-stopped
     environment:
       - NODE_ENV=production
@@ -18,7 +18,7 @@ services:
   backend:
     image: ghcr.io/${GITHUB_USERNAME}/scrum-poker-server:latest
     ports:
-      - "3001:3001"
+      - "3085:3001"
     restart: unless-stopped
     environment:
       - NODE_ENV=production
