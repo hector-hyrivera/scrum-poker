@@ -12,10 +12,11 @@ export interface RoomState {
   revealed: boolean;
 }
 
-const socket: Socket = io('http://localhost:3001', {
+const socket: Socket = io(window.location.origin, {
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
+  path: '/socket.io/',
 });
 
 socket.on('connect', () => {
