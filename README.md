@@ -29,7 +29,7 @@ cd scrum-poker
 npm install
 ```
 
-3. Install backend dependencies:
+3. Install backend dependencies (if applicable):
 ```bash
 cd server
 npm install
@@ -37,7 +37,7 @@ npm install
 
 ## Running the Application
 
-1. Start the backend server:
+1. Start the backend server (if applicable):
 ```bash
 cd server
 npm run dev
@@ -49,7 +49,7 @@ npm run dev
 npm run dev
 ```
 
-3. Open your browser and navigate to `http://localhost:5173`
+3. Open your browser and navigate to `http://localhost:3000`
 
 ## Usage
 
