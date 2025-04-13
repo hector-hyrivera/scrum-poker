@@ -12,6 +12,23 @@ import {
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 
+const Footer = () => (
+  <Box
+    component="footer"
+    sx={{
+      mt: 4,
+      py: 2,
+      textAlign: "center",
+      backgroundColor: "transparent", // Fully transparent background
+      color: "text.secondary",
+    }}
+  >
+    <Typography variant="body2">
+      © {new Date().getFullYear()} Hector Rivera. All rights reserved.
+    </Typography>
+  </Box>
+);
+
 const Home = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -60,13 +77,26 @@ const Home = () => {
       justifyContent="center"
       width="100%"
       p={2}
+      sx={{ flexDirection: "column" }}
     >
       <Box sx={{ width: '100%', maxWidth: '600px' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <Paper elevation={3} sx={{ p: 3 }}>
+          <Paper
+            elevation={3}
+            sx={{
+              width: "100%",
+              maxWidth: "1140px", // Ensure consistent max width
+              margin: "16px auto", // Add consistent vertical and horizontal margins
+              p: 3,
+              bgcolor: "rgba(255, 255, 255, 0.8)",
+              backdropFilter: "blur(10px)",
+              borderRadius: 2,
+              boxSizing: "border-box", // Ensure consistent box sizing
+            }}
+          >
             <Stack spacing={3}>
               <Typography variant="h3" component="h1" align="center" color="primary" gutterBottom>
                 SCRUM Poker
@@ -111,7 +141,7 @@ const Home = () => {
                 <Button
                   fullWidth
                   variant="contained"
-                  color="primary"
+                  color="success" // Change to success for green
                   size="large"
                   startIcon={<AddIcon />}
                   onClick={handleCreateRoom}
@@ -124,8 +154,9 @@ const Home = () => {
           </Paper>
         </motion.div>
       </Box>
+      <Footer />
     </Box>
   );
 };
 
-export default Home; 
+export default Home;

@@ -3,9 +3,18 @@
 @tailwind utilities;
 
 @layer base {
+  html, body {
+    margin: 0; /* Removes default margin */
+    padding: 0; /* Removes default padding */
+    min-height: 100vh; /* Ensures the background spans the full viewport */
+    background-color: #f9fafb; /* Matches the intended background color */
+  }
+
   body {
     @apply text-gray-800 antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    min-height: 100vh; /* Ensures the background extends to the full viewport height */
+    background-color: #f9fafb; /* Example background color */
   }
 }
 
@@ -19,15 +28,19 @@
   }
   
   .btn-primary {
-    @apply btn bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500;
+    @apply btn bg-[#49a942] text-white hover:bg-[#49a942] focus:ring-[#49a942] active:bg-[#49a942];
   }
   
   .btn-secondary {
-    @apply btn bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500;
+    @apply btn bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500 active:bg-[#49a942];
   }
   
   .btn-accent {
-    @apply btn bg-accent-500 text-white hover:bg-accent-600 focus:ring-accent-500;
+    @apply btn bg-[#49a942] text-white hover:bg-[#49a942] focus:ring-[#49a942] active:bg-[#49a942];
+  }
+  
+  .btn-success {
+    @apply btn bg-[#49a942] text-white hover:bg-[#49a942] focus:ring-[#49a942] active:bg-[#49a942];
   }
   
   .input {
@@ -96,5 +109,9 @@
 
   .qr-btn {
     @apply btn btn-accent px-4 py-2;
+  }
+
+  .container {
+    @apply shadow-md;
   }
 }

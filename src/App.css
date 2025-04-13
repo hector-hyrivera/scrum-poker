@@ -2,7 +2,9 @@
   width: 100%;
   min-height: 100vh;
   text-align: center;
-  background: #F5F7FA;
+  margin: 0; /* Removes any default margin */
+  padding: 0; /* Removes any default padding */
+  background: transparent; /* Ensures no conflicting background color */
 }
 
 .logo {

@@ -46,7 +46,7 @@ const theme = createTheme({
       contrastText: '#FFFFFF',
     },
     background: {
-      default: '#F5F7FA',
+      default: '#FFFFFF',
       paper: 'transparent',
     },
     text: {
@@ -93,6 +93,16 @@ const theme = createTheme({
     },
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          margin: 0, // Removes any default margin
+          padding: 0, // Removes any default padding
+          minHeight: '100vh',
+          backgroundColor: '#f9fafb', // Matches Tailwind's background color
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
