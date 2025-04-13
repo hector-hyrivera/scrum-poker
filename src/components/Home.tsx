@@ -91,7 +91,7 @@ const Home = () => {
               maxWidth: "1140px", // Ensure consistent max width
               margin: "16px auto", // Add consistent vertical and horizontal margins
               p: 3,
-              bgcolor: "rgba(255, 255, 255, 0.8)",
+              bgcolor: "transparent", // Fully transparent background
               backdropFilter: "blur(10px)",
               borderRadius: 2,
               boxSizing: "border-box", // Ensure consistent box sizing
