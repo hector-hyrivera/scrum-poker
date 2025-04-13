@@ -11,10 +11,12 @@ A real-time SCRUM planning poker application that allows teams to estimate user 
 - Reset voting for new rounds
 - Real-time updates using WebSocket
 - Clean and modern UI
+- Track history of winning votes
 
 ## Prerequisites
 
 - Node.js 16+ and npm
+- Docker (optional for containerized deployment)
 
 ## Installation
 
@@ -29,7 +31,7 @@ cd scrum-poker
 npm install
 ```
 
-3. Install backend dependencies (if applicable):
+3. Install backend dependencies:
 ```bash
 cd server
 npm install
@@ -37,7 +39,9 @@ npm install
 
 ## Running the Application
 
-1. Start the backend server (if applicable):
+### Local Development
+
+1. Start the backend server:
 ```bash
 cd server
 npm run dev
@@ -51,17 +55,42 @@ npm run dev
 
 3. Open your browser and navigate to `http://localhost:3000`
 
+### Using Docker
+
+1. Build and start the containers:
+```bash
+docker-compose up --build
+```
+
+2. Access the application at `http://localhost:8085`
+
 ## Usage
 
-1. On the home page, click "Create New Room" to generate a new planning poker session
-2. Share the room URL with your team members
-3. Each team member enters their name to join the room
-4. Select your estimate by clicking on a number
-5. When everyone has voted, click "Reveal Votes" to show all estimates
-6. Use "Reset Votes" to start a new round
+1. On the home page, click "Create New Room" to generate a new planning poker session.
+2. Share the room URL with your team members.
+3. Each team member enters their name to join the room.
+4. Select your estimate by clicking on a number.
+5. When everyone has voted, click "Reveal Votes" to show all estimates.
+6. Use "Reset Votes" to start a new round.
 
 ## Development
 
-- Frontend: React with TypeScript and Vite
-- Backend: Node.js with Express and Socket.IO
-- Styling: Tailwind CSS
+- **Frontend**: React with TypeScript, Vite, Material UI, Framer Motion, and Tailwind CSS
+- **Backend**: Node.js with Express, Socket.IO, and TypeScript
+- **Styling**: Tailwind CSS and Material UI
+
+### Additional Commands
+
+- Lint the code:
+```bash
+npm run lint
+```
+
+- Preview the production build:
+```bash
+npm run preview
+```
+
+## Deployment
+
+The project includes Docker configurations for containerized deployment. Use the `docker-compose` file to orchestrate the frontend and backend services.
