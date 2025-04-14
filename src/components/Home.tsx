@@ -91,7 +91,8 @@ const Home = () => {
               maxWidth: "1140px", // Ensure consistent max width
               margin: "16px auto", // Add consistent vertical and horizontal margins
               p: 3,
-              bgcolor: "transparent", // Fully transparent background
+              bgcolor: "background.paper", // Adapt to theme for better readability
+              color: "text.primary", // Ensure text color adapts to theme
               backdropFilter: "blur(10px)",
               borderRadius: 2,
               boxSizing: "border-box", // Ensure consistent box sizing
@@ -115,6 +116,24 @@ const Home = () => {
                 placeholder="Enter your name"
                 variant="outlined"
                 autoFocus
+                sx={{
+                  bgcolor: "background.paper", // Use paper background for better contrast
+                  color: "text.primary", // Ensure text color adapts to theme
+                  border: "1px solid",
+                  borderColor: "divider", // Add a border for better visibility
+                  borderRadius: 1, // Slight rounding for aesthetics
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: "background.paper", // Ensure input field has consistent background
+                    borderRadius: 1, // Match the border radius of the container
+                    border: "none", // Remove the inner square border
+                  },
+                }}
+                InputLabelProps={{
+                  style: { color: "text.secondary" }, // Ensure label color adapts to theme
+                }}
+                InputProps={{
+                  style: { color: "text.primary" }, // Ensure input text color adapts to theme
+                }}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && name.trim()) {
                     if (roomId) {
