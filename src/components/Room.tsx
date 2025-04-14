@@ -304,7 +304,7 @@ const Room = () => {
           spacing={2}
           sx={{
             position: "relative", // Ensure proper positioning
-            zIndex: 1, // Prevent overlap with toggle button
+            zIndex: 2, // Raise the z-index to prevent overlap
           }}
         >
           <Typography

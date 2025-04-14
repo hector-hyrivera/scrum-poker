@@ -200,7 +200,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div style={{ position: 'absolute', top: 16, right: 16 }}>
+      <div style={{ position: 'relative', display: 'flex', justifyContent: 'flex-end', padding: '4px 8px 0 8px' }}>
         <IconButton
           onClick={() => setDarkMode(!darkMode)}
           color="inherit"
@@ -208,7 +208,7 @@ function App() {
             backgroundColor: darkMode ? '#424242' : '#E0E0E0',
             color: darkMode ? '#FFFFFF' : '#000000',
             borderRadius: '50%',
-            padding: '8px',
+            padding: '4px 4px 0 4px', // Updated padding
             boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
           }}
         >
