@@ -275,7 +275,8 @@ const Room = () => {
       alignItems="center"
       justifyContent="flex-start"
       sx={{
-        background: "linear-gradient(135deg, #ece9e6 0%, #ffffff 100%)",
+        backgroundColor: "background.default", // Dynamically adapt to theme
+        color: "text.primary", // Ensure text color adapts to theme
         p: { xs: 2, sm: 3, md: 4 },
       }}
     >
@@ -283,13 +284,17 @@ const Room = () => {
         elevation={2}
         sx={{
           width: "100%",
-          maxWidth: "1400px", // Ensure consistent max width
-          margin: "0 auto 16px", // Add bottom margin to prevent overlap
+          maxWidth: "1400px",
+          margin: "0 auto 16px",
           p: { xs: 2, sm: 3, md: 4 },
-          bgcolor: "rgba(255, 255, 255, 0.8)",
+          bgcolor: "background.paper", // Adapt to theme
+          color: "text.primary", // Ensure text color adapts to theme
           backdropFilter: "blur(10px)",
           borderRadius: 2,
-          boxSizing: "border-box", // Ensure consistent box sizing
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", // Add shadow for distinction
+          border: "1px solid",
+          borderColor: "divider", // Ensure border adapts to theme
+          boxSizing: "border-box",
         }}
       >
         <Stack
@@ -297,6 +302,10 @@ const Room = () => {
           justifyContent="space-between"
           alignItems="center"
           spacing={2}
+          sx={{
+            position: "relative", // Ensure proper positioning
+            zIndex: 1, // Prevent overlap with toggle button
+          }}
         >
           <Typography
             variant="h4"
@@ -396,14 +405,17 @@ const Room = () => {
             elevation={2}
             sx={{
               width: "100%",
-              maxWidth: "800px", // Adjusted max width to align with other elements
-              margin: "auto", // Center align horizontally
-              p: 3,
-              bgcolor: "rgba(255, 255, 255, 0.8)",
+              maxWidth: "1400px",
+              margin: "0 auto 16px",
+              p: { xs: 2, sm: 3, md: 4 },
+              bgcolor: "background.paper", // Adapt to theme
+              color: "text.primary", // Ensure text color adapts to theme
               backdropFilter: "blur(10px)",
               borderRadius: 2,
-              position: "sticky",
-              boxSizing: "border-box", // Ensure consistent box sizing
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", // Add shadow for distinction
+              border: "1px solid",
+              borderColor: "divider", // Ensure border adapts to theme
+              boxSizing: "border-box",
             }}
           >
             <Typography
@@ -492,12 +504,18 @@ const Room = () => {
         <Paper
           elevation={2}
           sx={{
-            p: 3,
-            bgcolor: "rgba(255, 255, 255, 0.8)",
+            width: "100%",
+            maxWidth: "1400px",
+            margin: "0 auto 16px",
+            p: { xs: 2, sm: 3, md: 4 },
+            bgcolor: "background.paper", // Adapt to theme
+            color: "text.primary", // Ensure text color adapts to theme
             backdropFilter: "blur(10px)",
             borderRadius: 2,
-            position: "sticky",
-            top: "20px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", // Add shadow for distinction
+            border: "1px solid",
+            borderColor: "divider", // Ensure border adapts to theme
+            boxSizing: "border-box",
           }}
         >
           <Typography
@@ -510,53 +528,48 @@ const Room = () => {
           </Typography>
           <Box
             display="grid"
-            gridTemplateColumns={{ xs: "repeat(3, 1fr)", sm: "repeat(3, 1fr)" }}
-            gap={1.5}
+            gridTemplateColumns={{ xs: "repeat(2, 1fr)", sm: "repeat(3, 1fr)", md: "repeat(4, 1fr)" }}
+            gap={2}
             sx={{
               width: "100%",
-              maxWidth: "1400px", // Ensure consistent max width
-              margin: "0 auto", // Center align horizontally
+              maxWidth: "1400px",
+              margin: "0 auto",
               p: 3,
-              bgcolor: "rgba(255, 255, 255, 0.8)",
+              bgcolor: "background.paper",
               backdropFilter: "blur(10px)",
               borderRadius: 2,
-              boxSizing: "border-box", // Ensure consistent box sizing
+              // boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              // border: "1px solid",
+              borderColor: "divider",
+              boxSizing: "border-box",
             }}
           >
             {["1", "2", "3", "5", "8", "13", "21", "?", "☕"].map((value) => (
-              <Box key={value}>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+              <motion.div
+                key={value}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  fullWidth
+                  variant={vote === value ? "contained" : "outlined"}
+                  color={vote === value ? "secondary" : "primary"}
+                  onClick={() => handleVote(value)}
+                  disabled={isRevealed}
+                  sx={{
+                    height: "60px",
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    boxShadow: vote === value ? "0 4px 12px rgba(0,0,0,0.2)" : "none",
+                    "&:hover": {
+                      backgroundColor: vote === value ? "#5bc254" : "",
+                      color: vote === value ? "#ffffff" : "",
+                    },
+                  }}
                 >
-                  <Button
-                    fullWidth
-                    variant={vote === value ? "contained" : "outlined"}
-                    color={vote === value ? "secondary" : "primary"}
-                    onClick={() => handleVote(value)}
-                    disabled={isRevealed}
-                    sx={{
-                      height: "60px",
-                      borderWidth: vote === value ? 0 : 1,
-                      fontSize: "1.2rem",
-                      fontWeight: 600,
-                      boxShadow:
-                        vote === value ? "0 4px 12px rgba(0,0,0,0.2)" : "none",
-                      backgroundColor: vote === value ? "#49a942" : "",
-                      "&:hover": {
-                        borderWidth: 1,
-                        backgroundColor: "#5bc254", // Slightly lighter shade of green
-                        color: "#ffffff", // White font
-                      },
-                      "&.Mui-disabled": {
-                        backgroundColor: "#49a942",
-                      },
-                    }}
-                  >
-                    {value}
-                  </Button>
-                </motion.div>
-              </Box>
+                  {value}
+                </Button>
+              </motion.div>
             ))}
           </Box>
 

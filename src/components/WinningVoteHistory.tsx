@@ -24,7 +24,24 @@ const WinningVoteHistory: React.FC = () => {
   }, []);
 
   return (
-    <TableContainer component={Paper} sx={{ width: '100%', maxWidth: '1400px', margin: '16px auto', p: 3, bgcolor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(10px)', borderRadius: 2, boxSizing: 'border-box' }}>
+    <TableContainer
+      component={Paper}
+      sx={{
+        width: '100%',
+        maxWidth: '1400px',
+        margin: '16px auto',
+        p: 3,
+        bgcolor: 'background.paper',
+        backdropFilter: 'blur(10px)',
+        borderRadius: 2,
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+        border: '1px solid',
+        borderColor: 'divider',
+        boxSizing: 'border-box',
+        overflowX: 'auto',
+        borderTop: 'none',
+      }}
+    >
       <Typography variant="h5" gutterBottom color="text.primary" sx={{ mb: 3, fontWeight: 600, fontSize: '1.25rem' }}>
         Last vote result
       </Typography>
