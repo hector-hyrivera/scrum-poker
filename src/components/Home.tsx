@@ -24,7 +24,7 @@ const Footer = () => (
     }}
   >
     <Typography variant="body2">
-      © {new Date().getFullYear()} Hector Rivera. All rights reserved.
+      {new Date().getFullYear()} Hector Rivera. All rights reserved.
     </Typography>
   </Box>
 );
@@ -34,7 +34,7 @@ const Home = () => {
   const [searchParams] = useSearchParams();
   const [name, setName] = useState('');
   const [error, setError] = useState('');
-  const roomId = searchParams.get('room');
+  const [roomCode, setRoomCode] = useState(() => searchParams.get('room') || '');
 
   const handleCreateRoom = async () => {
     if (!name.trim()) {
@@ -88,14 +88,14 @@ const Home = () => {
             elevation={3}
             sx={{
               width: "100%",
-              maxWidth: "1140px", // Ensure consistent max width
-              margin: "16px auto", // Add consistent vertical and horizontal margins
+              maxWidth: "1140px",
+              margin: "16px auto",
               p: 3,
-              bgcolor: "background.paper", // Adapt to theme for better readability
-              color: "text.primary", // Ensure text color adapts to theme
+              bgcolor: "background.paper",
+              color: "text.primary",
               backdropFilter: "blur(10px)",
               borderRadius: 2,
-              boxSizing: "border-box", // Ensure consistent box sizing
+              boxSizing: "border-box",
             }}
           >
             <Stack spacing={3}>
@@ -103,7 +103,7 @@ const Home = () => {
                 SCRUM Poker
               </Typography>
               <Typography variant="subtitle1" align="center" color="text.secondary" paragraph>
-                {roomId ? 'Join the planning poker room' : 'Create a planning poker room'}
+                Create a planning poker room or join an existing one
               </Typography>
 
               <TextField
@@ -117,27 +117,27 @@ const Home = () => {
                 variant="outlined"
                 autoFocus
                 sx={{
-                  bgcolor: "background.paper", // Use paper background for better contrast
-                  color: "text.primary", // Ensure text color adapts to theme
+                  bgcolor: "background.paper",
+                  color: "text.primary",
                   border: "1px solid",
-                  borderColor: "divider", // Add a border for better visibility
-                  borderRadius: 1, // Slight rounding for aesthetics
+                  borderColor: "divider",
+                  borderRadius: 1,
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: "background.paper", // Ensure input field has consistent background
-                    borderRadius: 1, // Match the border radius of the container
-                    border: "none", // Remove the inner square border
+                    backgroundColor: "background.paper",
+                    borderRadius: 1,
+                    border: "none",
                   },
                 }}
                 InputLabelProps={{
-                  style: { color: "text.secondary" }, // Ensure label color adapts to theme
+                  style: { color: "text.secondary" },
                 }}
                 InputProps={{
-                  style: { color: "text.primary" }, // Ensure input text color adapts to theme
+                  style: { color: "text.primary" },
                 }}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && name.trim()) {
-                    if (roomId) {
-                      handleJoinRoom(roomId);
+                    if (roomCode.trim()) {
+                      handleJoinRoom(roomCode.trim());
                     } else {
                       handleCreateRoom();
                     }
@@ -145,30 +145,55 @@ const Home = () => {
                 }}
               />
 
-              {roomId ? (
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  onClick={() => handleJoinRoom(roomId)}
-                  disabled={!name.trim()}
-                >
-                  Join Room
-                </Button>
-              ) : (
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="success" // Change to success for green
-                  size="large"
-                  startIcon={<AddIcon />}
-                  onClick={handleCreateRoom}
-                  disabled={!name.trim()}
-                >
-                  Create New Room
-                </Button>
-              )}
+              <TextField
+                fullWidth
+                label="Room Code (e.g. blue-apple-42)"
+                value={roomCode}
+                onChange={(e) => setRoomCode(e.target.value)}
+                placeholder="Enter a room code to join"
+                variant="outlined"
+                sx={{
+                  bgcolor: "background.paper",
+                  color: "text.primary",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: "background.paper",
+                    borderRadius: 1,
+                    border: "none",
+                  },
+                }}
+                InputLabelProps={{
+                  style: { color: "text.secondary" },
+                }}
+                InputProps={{
+                  style: { color: "text.primary" },
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && name.trim() && roomCode.trim()) {
+                    handleJoinRoom(roomCode.trim());
+                  }
+                }}
+              />
+
+              <Button
+                fullWidth
+                variant="contained"
+                color={roomCode.trim() ? "primary" : "success"}
+                size="large"
+                startIcon={!roomCode.trim() ? <AddIcon /> : undefined}
+                onClick={() => {
+                  if (roomCode.trim()) {
+                    handleJoinRoom(roomCode.trim());
+                  } else {
+                    handleCreateRoom();
+                  }
+                }}
+                disabled={!name.trim()}
+              >
+                {roomCode.trim() ? 'Join Room' : 'Create New Room'}
+              </Button>
             </Stack>
           </Paper>
         </motion.div>

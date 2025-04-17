@@ -36,6 +36,16 @@ interface VoteHistoryEntry {
 
 const rooms = new Map<string, Room>();
 
+// --- Human-readable room ID generator ---
+function generateRoomId() {
+  const adjectives = ['blue', 'green', 'red', 'quick', 'brave', 'calm', 'lucky', 'bright', 'kind', 'bold'];
+  const nouns = ['apple', 'tiger', 'river', 'cloud', 'mountain', 'forest', 'ocean', 'star', 'wolf', 'falcon'];
+  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const number = Math.floor(10 + Math.random() * 90); // 2-digit number
+  return `${adj}-${noun}-${number}`;
+}
+
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
@@ -53,7 +63,7 @@ io.on('connection', (socket) => {
 
   socket.on('createRoom', (data: { name: string; sessionId: string }) => {
     const { name, sessionId } = data;
-    const roomId = Math.random().toString(36).substring(2, 8);
+    const roomId = generateRoomId();
     const user: User = { id: socket.id, name, vote: null, sessionId };
     const room: Room = { users: [user], revealed: false, history: [] };
     rooms.set(roomId, room);
