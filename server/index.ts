@@ -21,6 +21,17 @@ interface User {
 interface Room {
   users: User[];
   revealed: boolean;
+  history: VoteHistoryEntry[];
+  currentRoundId?: string; // For custom or sequential round IDs
+}
+
+interface VoteHistoryEntry {
+  id: string; // sequential or custom
+  votes: { name: string; vote: string | null; sessionId: string }[];
+  participants: number;
+  winningCard: string;
+  winnerName?: string;
+  timestamp: number;
 }
 
 const rooms = new Map<string, Room>();
@@ -44,7 +55,7 @@ io.on('connection', (socket) => {
     const { name, sessionId } = data;
     const roomId = Math.random().toString(36).substring(2, 8);
     const user: User = { id: socket.id, name, vote: null, sessionId };
-    const room: Room = { users: [user], revealed: false };
+    const room: Room = { users: [user], revealed: false, history: [] };
     rooms.set(roomId, room);
     socket.join(roomId);
     socket.data.roomId = roomId; // Track the room ID
@@ -72,6 +83,7 @@ io.on('connection', (socket) => {
       socket.data.roomId = roomId; // Track the room ID
       socket.emit('userJoined', { users: room.users, revealed: room.revealed });
       socket.emit('roomState', { users: room.users, revealed: room.revealed });
+      socket.emit('updateWinningVoteHistory', room.history);
       return;
     }
 
@@ -89,6 +101,7 @@ io.on('connection', (socket) => {
     socket.data.roomId = roomId; // Track the room ID
     io.to(roomId).emit('userJoined', { users: room.users, revealed: room.revealed });
     socket.emit('roomState', { users: room.users, revealed: room.revealed });
+    socket.emit('updateWinningVoteHistory', room.history);
   });
 
   socket.on('vote', (data: { roomId: string; vote: string }) => {
@@ -107,7 +120,9 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('reveal', (roomId: string) => {
+  // Accept optional roundId for custom/sequential vote round naming
+  socket.on('reveal', (data: { roomId: string; roundId?: string }) => {
+    const { roomId, roundId } = typeof data === 'string' ? { roomId: data, roundId: undefined } : data;
     const room = rooms.get(roomId);
 
     if (!room) {
@@ -116,40 +131,40 @@ io.on('connection', (socket) => {
     }
 
     room.revealed = true;
-
-    // Calculate winning vote history
     const votes = room.users.map(user => user.vote).filter(vote => vote !== null);
     if (votes.length > 0) {
-      const counts = votes.reduce<Record<string, number>>((acc, vote) => {
-        acc[vote] = (acc[vote] || 0) + 1;
+      const counts = votes.reduce((acc: Record<string, number>, vote) => {
+        acc[vote!] = (acc[vote!] || 0) + 1;
         return acc;
       }, {});
-
       const winningCard = Object.keys(counts).reduce((a, b) => (counts[a] > counts[b] ? a : b));
-      const historyEntry = {
+      const winner = room.users.find(user => user.vote === winningCard);
+      // Use custom or sequential round id
+      const id = roundId || String(room.history.length + 1);
+      const historyEntry: VoteHistoryEntry = {
+        id,
+        votes: room.users.map(u => ({ name: u.name, vote: u.vote, sessionId: u.sessionId })),
         participants: room.users.length,
         winningCard,
-        name: room.users.find(user => user.vote === winningCard)?.name,
+        winnerName: winner?.name,
+        timestamp: Date.now(),
       };
-
-      // Emit updated winning vote history
-      io.to(roomId).emit('updateWinningVoteHistory', [historyEntry]);
+      room.history.push(historyEntry);
+      io.to(roomId).emit('updateWinningVoteHistory', room.history);
     }
-
     io.to(roomId).emit('userJoined', { users: room.users, revealed: room.revealed });
   });
 
+  // Reset round, but keep history
   socket.on('reset', (roomId: string) => {
     const room = rooms.get(roomId);
-
     if (!room) {
       socket.emit('roomNotFound');
       return;
     }
-
     room.revealed = false;
     room.users = room.users.map(user => ({ ...user, vote: null }));
-
+    // Do not clear history here
     io.to(roomId).emit('votesReset', { users: room.users, revealed: room.revealed });
   });
 

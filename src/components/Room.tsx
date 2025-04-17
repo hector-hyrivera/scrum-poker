@@ -11,6 +11,7 @@ import {
   Chip,
   Stack,
   Paper,
+  TextField,
 } from "@mui/material";
 import {
   ContentCopy as ContentCopyIcon,
@@ -20,7 +21,7 @@ import {
   Refresh as RefreshIcon,
   EmojiEvents as EmojiEventsIcon,
 } from "@mui/icons-material";
-import WinningVoteHistory from "./WinningVoteHistory";
+import { WinningVoteHistory } from "./WinningVoteHistory";
 
 interface Participant {
   id: string;
@@ -40,7 +41,7 @@ const Footer = () => (
     }}
   >
     <Typography variant="body2">
-      © {new Date().getFullYear()} Hector Rivera. All rights reserved.
+      {new Date().getFullYear()} Hector Rivera. All rights reserved.
     </Typography>
   </Box>
 );
@@ -54,6 +55,7 @@ const Room = () => {
   const [showQRCode, setShowQRCode] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [winningValue, setWinningValue] = useState<string | null>(null);
+  const [customRoundId, setCustomRoundId] = useState("");
 
   const name = location.state?.name;
 
@@ -75,8 +77,10 @@ const Room = () => {
 
   const handleReveal = useCallback(() => {
     if (!roomId) return;
-    socket.emit("reveal", roomId);
-  }, [roomId]);
+    // If user entered a custom round label, use it, else undefined
+    socket.emit("reveal", { roomId, roundId: customRoundId.trim() || undefined });
+    setCustomRoundId("");
+  }, [roomId, customRoundId]);
 
   const handleReset = useCallback(() => {
     if (!roomId) return;
@@ -561,9 +565,12 @@ const Room = () => {
                     fontSize: "1rem",
                     fontWeight: 600,
                     boxShadow: vote === value ? "0 4px 12px rgba(0,0,0,0.2)" : "none",
-                    "&:hover": {
-                      backgroundColor: vote === value ? "#5bc254" : "",
-                      color: vote === value ? "#ffffff" : "",
+                    backgroundColor: vote === value ? "#5bc254" : undefined,
+                    borderColor: vote === value ? "#5bc254" : undefined,
+                    color: vote === value ? "#fff" : undefined,
+                    '&:hover': {
+                      backgroundColor: vote === value ? "#4ea746" : undefined,
+                      color: vote === value ? "#fff" : undefined,
                     },
                   }}
                 >
@@ -573,7 +580,43 @@ const Room = () => {
             ))}
           </Box>
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
+            <TextField
+              label="Round label (optional)"
+              value={customRoundId}
+              onChange={(e) => setCustomRoundId(e.target.value)}
+              sx={{
+                minWidth: 180,
+                '& .MuiInputBase-input': {
+                  color: 'text.primary',
+                  backgroundColor: 'background.paper',
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'text.secondary',
+                  // Improve label contrast in dark mode
+                  '&.Mui-focused': {
+                    color: 'primary.main',
+                  },
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'divider',
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  color: 'text.secondary',
+                  '&.Mui-focused': {
+                    color: 'primary.main',
+                  },
+                },
+              }}
+              InputProps={{
+                sx: {
+                  color: 'text.primary',
+                  backgroundColor: 'background.paper',
+                },
+              }}
+            />
             <Button
               fullWidth
               variant="contained"
@@ -581,6 +624,14 @@ const Room = () => {
               startIcon={<VisibilityIcon />}
               onClick={handleReveal}
               disabled={isRevealed || participants.every((p) => !p.vote)}
+              sx={{
+                backgroundColor: "#5bc254",
+                color: "#fff",
+                '&:hover': {
+                  backgroundColor: "#4ea746",
+                  color: "#fff",
+                },
+              }}
             >
               Reveal Votes
             </Button>
@@ -591,7 +642,16 @@ const Room = () => {
               startIcon={<RefreshIcon />}
               onClick={handleReset}
               disabled={!isRevealed && participants.every((p) => !p.vote)}
-              sx={{ borderWidth: 2 }}
+              sx={{
+                borderWidth: 2,
+                borderColor: "#5bc254",
+                color: "#5bc254",
+                '&:hover': {
+                  backgroundColor: "rgba(91, 194, 84, 0.12)",
+                  borderColor: "#4ea746",
+                  color: "#4ea746",
+                },
+              }}
             >
               Reset
             </Button>
