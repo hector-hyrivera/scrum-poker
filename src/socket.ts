@@ -13,7 +13,7 @@ export interface RoomState {
   winningVoteHistory: string[]; // New property to track winning vote history
 }
 
-const socket: Socket = io("http://localhost:3001", {
+const socket: Socket = io(window.location.origin, {
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
