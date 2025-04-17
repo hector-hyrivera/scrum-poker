@@ -13,7 +13,9 @@ export interface RoomState {
   winningVoteHistory: string[]; // New property to track winning vote history
 }
 
-const socket: Socket = io(window.location.origin, {
+const socketUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin;
+
+const socket: Socket = io(socketUrl, {
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
@@ -53,7 +55,9 @@ socket.on('connect_error', (error) => {
 const getSessionId = () => {
   let sessionId = localStorage.getItem('sessionId');
   if (!sessionId) {
-    sessionId = Math.random().toString(36).substring(2, 15);
+    sessionId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : Math.random().toString(36).substring(2, 15);
     localStorage.setItem('sessionId', sessionId);
   }
   return sessionId;
@@ -127,6 +131,10 @@ export const cleanup = (): void => {
   socket.off('votesRevealed');
   socket.off('votesReset');
   socket.off('roomNotFound');
+  socket.off('roomCreated');
+  socket.off('connect');
+  socket.off('disconnect');
+  socket.off('connect_error');
 };
 
 // Update the onVotesRevealed event to include logic for tracking the winning vote
