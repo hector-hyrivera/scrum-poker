@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { socket } from "../socket";
+import { useSocketEvent } from "./use-socket-event";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -96,76 +97,55 @@ const Room = () => {
     setShowQRCode((prev) => !prev);
   }, []);
 
+  // Socket event handlers
+  function handleUserJoined(state: { users: Participant[]; revealed: boolean }) {
+    setParticipants(state.users);
+    setIsRevealed(state.revealed);
+  }
+  function handleUserVoted(state: { users: Participant[]; revealed: boolean }) {
+    setParticipants(state.users);
+    setIsRevealed(state.revealed);
+  }
+  function handleVotesRevealed(state: { users: Participant[]; revealed: boolean }) {
+    setParticipants(state.users);
+    setIsRevealed(true);
+  }
+  function handleVotesReset(state: { users: Participant[] }) {
+    console.log("Votes reset");
+    setParticipants(state.users);
+    setIsRevealed(false);
+    setVote(null);
+    setWinningValue(null);
+  }
+  function handleRoomNotFound() {
+    setTimeout(() => navigate("/"), 2000);
+  }
+
+  // Use socket event hook
+  useSocketEvent<{ users: Participant[]; revealed: boolean }>("userJoined", handleUserJoined);
+  useSocketEvent<{ users: Participant[]; revealed: boolean }>("userVoted", handleUserVoted);
+  useSocketEvent<{ users: Participant[]; revealed: boolean }>("votesRevealed", handleVotesRevealed);
+  useSocketEvent("roomNotFound", handleRoomNotFound);
+  useSocketEvent("votesReset", handleVotesReset);
+
+  // Join room and subscribe to roomState
+  // (Retain useEffect for imperative join/emit logic, not for socket event subscriptions)
   useEffect(() => {
     if (!roomId || !name) {
       navigate("/");
       return;
     }
-
-    const handleUserJoined = (state: {
-      users: Participant[];
-      revealed: boolean;
-    }) => {
-      console.log("User joined, state:", state);
-      setParticipants(state.users);
-      setIsRevealed(state.revealed);
-    };
-
-    const handleUserVoted = (state: {
-      users: Participant[];
-      revealed: boolean;
-    }) => {
-      console.log("User voted, state:", state);
-      setParticipants(state.users);
-      setIsRevealed(state.revealed);
-    };
-
-    const handleVotesRevealed = (state: {
-      users: Participant[];
-      revealed: boolean;
-    }) => {
-      console.log("Votes revealed, state:", state);
-      setParticipants(state.users);
-      setIsRevealed(true);
-    };
-
-    const handleVotesReset = () => {
-      console.log("Votes reset");
-      setIsRevealed(false);
-      setVote(null);
-      setWinningValue(null);
-    };
-
-    const handleRoomNotFound = () => {
-      console.log("Room not found");
-      setTimeout(() => navigate("/"), 2000);
-    };
-
     const sessionId = localStorage.getItem("sessionId");
     socket.emit("joinRoom", { roomId, name, sessionId });
-
-    socket.on("userJoined", handleUserJoined);
-    socket.on("userVoted", handleUserVoted);
-    socket.on("votesRevealed", handleVotesRevealed);
-    socket.on("votesReset", handleVotesReset);
-    socket.on("roomNotFound", handleRoomNotFound);
     socket.emit("getRoomState", roomId);
-    socket.on(
-      "roomState",
-      (state: { users: Participant[]; revealed: boolean }) => {
-        console.log("Received initial room state:", state);
-        setParticipants(state.users);
-        setIsRevealed(state.revealed);
-      }
-    );
-
+    function handleRoomState(state: { users: Participant[]; revealed: boolean; winningValue?: string | null }) {
+      setParticipants(state.users);
+      setIsRevealed(state.revealed);
+      if (state.winningValue) setWinningValue(state.winningValue);
+    }
+    socket.on("roomState", handleRoomState);
     return () => {
-      socket.off("userJoined", handleUserJoined);
-      socket.off("userVoted", handleUserVoted);
-      socket.off("votesRevealed", handleVotesRevealed);
-      socket.off("votesReset", handleVotesReset);
-      socket.off("roomNotFound", handleRoomNotFound);
-      socket.off("roomState");
+      socket.off("roomState", handleRoomState);
     };
   }, [roomId, name, navigate]);
 
@@ -228,46 +208,6 @@ const Room = () => {
       setWinningValue(null);
     }
   }, [participants, isRevealed]);
-
-  useEffect(() => {
-    const handleVotesReset = (state: { users: Participant[] }) => {
-      console.log("Votes reset");
-      setParticipants(state.users);
-      setIsRevealed(false);
-      setVote(null);
-      setWinningValue(null);
-    };
-
-    socket.on("votesReset", handleVotesReset);
-
-    return () => {
-      socket.off("votesReset", handleVotesReset);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleUserJoined = (state: { users: Participant[]; revealed: boolean }) => {
-      console.log("User joined, state:", state);
-      setParticipants(state.users);
-      setIsRevealed(state.revealed);
-    };
-
-    const handleVotesReset = (state: { users: Participant[] }) => {
-      console.log("Votes reset");
-      setParticipants(state.users);
-      setIsRevealed(false);
-      setVote(null);
-      setWinningValue(null);
-    };
-
-    socket.on("userJoined", handleUserJoined);
-    socket.on("votesReset", handleVotesReset);
-
-    return () => {
-      socket.off("userJoined", handleUserJoined);
-      socket.off("votesReset", handleVotesReset);
-    };
-  }, []);
 
   const roomUrl = `${window.location.origin}/?room=${roomId}`;
 
@@ -647,7 +587,7 @@ const Room = () => {
                 borderColor: "#5bc254",
                 color: "#5bc254",
                 '&:hover': {
-                  backgroundColor: "rgba(91, 194, 84, 0.12)",
+                  backgroundColor: "rgba(91, 196, 84, 0.12)",
                   borderColor: "#4ea746",
                   color: "#4ea746",
                 },

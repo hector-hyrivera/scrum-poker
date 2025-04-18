@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createRoom, joinRoom } from '../socket';
+import { useSocketEvent } from './use-socket-event';
 import { motion } from 'framer-motion';
 import {
   Box,
@@ -12,60 +13,74 @@ import {
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 
-const Footer = () => (
-  <Box
-    component="footer"
-    sx={{
-      mt: 4,
-      py: 2,
-      textAlign: "center",
-      backgroundColor: "transparent", // Fully transparent background
-      color: "text.secondary",
-    }}
-  >
-    <Typography variant="body2">
-      {new Date().getFullYear()} Hector Rivera. All rights reserved.
-    </Typography>
-  </Box>
-);
+interface ServerErrorPayload {
+  message: string;
+}
 
-const Home = () => {
+function Footer() {
+  return (
+    <Box
+      component="footer"
+      sx={{
+        mt: 4,
+        py: 2,
+        textAlign: "center",
+        backgroundColor: "transparent",
+        color: "text.secondary",
+      }}
+    >
+      <Typography variant="body2">
+        {new Date().getFullYear()} Hector Rivera. All rights reserved.
+      </Typography>
+    </Box>
+  );
+}
+
+export function Home() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
-  const [roomCode, setRoomCode] = useState(() => searchParams.get('room') || '');
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+  const [roomCode, setRoomCode] = useState(() => searchParams.get("room") || "");
+  const [hasRoom, setHasRoom] = useState(false);
+  const hasRoomInQuery = !!searchParams.get("room");
+
+  useEffect(() => {
+    if (hasRoomInQuery) setHasRoom(true);
+  }, [hasRoomInQuery]);
+
+  useSocketEvent<ServerErrorPayload>("serverError", (payload) => {
+    setError(payload.message);
+  });
 
   const handleCreateRoom = async () => {
     if (!name.trim()) {
-      setError('Please enter your name');
+      setError("Please enter your name");
       return;
     }
     try {
-      console.log('Creating room with name:', name);
       const { roomId } = await createRoom(name);
-      console.log('Room created with ID:', roomId);
-      const roomState = await joinRoom(roomId, name);
-      console.log('Joined room with state:', roomState);
+      await joinRoom(roomId, name);
       navigate(`/room/${roomId}`, { state: { name } });
     } catch (err) {
-      console.error('Failed to create room:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create room');
+      setError(err instanceof Error ? err.message : "Failed to create room");
     }
   };
 
   const handleJoinRoom = async (roomIdToJoin: string) => {
     if (!name.trim()) {
-      setError('Please enter your name');
+      setError("Please enter your name");
+      return;
+    }
+    if (!roomIdToJoin.trim()) {
+      setError("Please enter a room code");
       return;
     }
     try {
-      const roomState = await joinRoom(roomIdToJoin, name);
-      console.log('Joined room with state:', roomState);
+      await joinRoom(roomIdToJoin, name);
       navigate(`/room/${roomIdToJoin}`, { state: { name } });
     } catch (err) {
-      console.error('Failed to join room:', err);
-      setError(err instanceof Error ? err.message : 'Failed to join room');
+      setError(err instanceof Error ? err.message : "Failed to join room");
     }
   };
 
@@ -79,11 +94,8 @@ const Home = () => {
       p={2}
       sx={{ flexDirection: "column" }}
     >
-      <Box sx={{ width: '100%', maxWidth: '600px' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+      <Box sx={{ width: "100%", maxWidth: "600px" }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Paper
             elevation={3}
             sx={{
@@ -103,16 +115,37 @@ const Home = () => {
                 SCRUM Poker
               </Typography>
               <Typography variant="subtitle1" align="center" color="text.secondary" paragraph>
-                Create a planning poker room or join an existing one
+                {hasRoomInQuery
+                  ? "Join this room by entering your name."
+                  : hasRoom
+                  ? "Join an existing room by entering your name and the room code."
+                  : "Create a new room by entering just your name."}
               </Typography>
-
+              {!hasRoomInQuery && (
+                <Stack direction="row" justifyContent="center" alignItems="center" spacing={1}>
+                  <Typography variant="body2">
+                    {hasRoom ? "Want to create a new room?" : "Already have a room?"}
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => {
+                      setHasRoom((v) => !v);
+                      setError("");
+                    }}
+                    sx={{ textTransform: "none" }}
+                  >
+                    {hasRoom ? "Create New Room" : "Join Existing Room"}
+                  </Button>
+                </Stack>
+              )}
               <TextField
                 fullWidth
                 label="Your Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                error={!!error}
-                helperText={error}
+                error={!!error && !name.trim()}
+                helperText={!!error && !name.trim() ? error : ""}
                 placeholder="Enter your name"
                 variant="outlined"
                 autoFocus
@@ -134,65 +167,71 @@ const Home = () => {
                 InputProps={{
                   style: { color: "text.primary" },
                 }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && name.trim()) {
-                    if (roomCode.trim()) {
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && name.trim()) {
+                    if (hasRoomInQuery) {
                       handleJoinRoom(roomCode.trim());
-                    } else {
+                    } else if (!hasRoom) {
                       handleCreateRoom();
+                    } else if (hasRoom && roomCode.trim()) {
+                      handleJoinRoom(roomCode.trim());
                     }
                   }
                 }}
               />
-
-              <TextField
-                fullWidth
-                label="Room Code (e.g. blue-apple-42)"
-                value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value)}
-                placeholder="Enter a room code to join"
-                variant="outlined"
-                sx={{
-                  bgcolor: "background.paper",
-                  color: "text.primary",
-                  border: "1px solid",
-                  borderColor: "divider",
-                  borderRadius: 1,
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: "background.paper",
+              {!hasRoomInQuery && hasRoom && (
+                <TextField
+                  fullWidth
+                  label="Room Code (e.g. blue-apple-42)"
+                  value={roomCode}
+                  onChange={(e) => setRoomCode(e.target.value)}
+                  error={!!error && (!roomCode.trim() || !name.trim())}
+                  helperText={!!error && (!roomCode.trim() || !name.trim()) ? error : ""}
+                  placeholder="Enter a room code to join"
+                  variant="outlined"
+                  sx={{
+                    bgcolor: "background.paper",
+                    color: "text.primary",
+                    border: "1px solid",
+                    borderColor: "divider",
                     borderRadius: 1,
-                    border: "none",
-                  },
-                }}
-                InputLabelProps={{
-                  style: { color: "text.secondary" },
-                }}
-                InputProps={{
-                  style: { color: "text.primary" },
-                }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && name.trim() && roomCode.trim()) {
-                    handleJoinRoom(roomCode.trim());
-                  }
-                }}
-              />
-
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: "background.paper",
+                      borderRadius: 1,
+                      border: "none",
+                    },
+                  }}
+                  InputLabelProps={{
+                    style: { color: "text.secondary" },
+                  }}
+                  InputProps={{
+                    style: { color: "text.primary" },
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && name.trim() && roomCode.trim()) {
+                      handleJoinRoom(roomCode.trim());
+                    }
+                  }}
+                />
+              )}
               <Button
                 fullWidth
                 variant="contained"
-                color={roomCode.trim() ? "primary" : "success"}
+                color={hasRoomInQuery || hasRoom ? "primary" : "success"}
                 size="large"
-                startIcon={!roomCode.trim() ? <AddIcon /> : undefined}
+                startIcon={!hasRoomInQuery && !hasRoom ? <AddIcon /> : undefined}
                 onClick={() => {
-                  if (roomCode.trim()) {
+                  if (hasRoomInQuery) {
+                    handleJoinRoom(roomCode.trim());
+                  } else if (hasRoom) {
                     handleJoinRoom(roomCode.trim());
                   } else {
                     handleCreateRoom();
                   }
                 }}
-                disabled={!name.trim()}
+                disabled={hasRoomInQuery ? !name.trim() : hasRoom ? !name.trim() || !roomCode.trim() : !name.trim()}
               >
-                {roomCode.trim() ? 'Join Room' : 'Create New Room'}
+                {hasRoomInQuery ? "Join Room" : hasRoom ? "Join Room" : "Create New Room"}
               </Button>
             </Stack>
           </Paper>
@@ -201,6 +240,6 @@ const Home = () => {
       <Footer />
     </Box>
   );
-};
+}
 
 export default Home;

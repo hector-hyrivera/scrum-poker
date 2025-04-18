@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Chip, Stack } from '@mui/material';
-import { socket } from '../socket';
+import { useSocketEvent } from './use-socket-event';
 
 interface VoteHistoryEntry {
   id: string;
@@ -14,20 +14,16 @@ interface VoteHistoryEntry {
 export function WinningVoteHistory() {
   const [history, setHistory] = useState<VoteHistoryEntry[]>([]);
 
-  useEffect(() => {
-    function handleUpdateWinningVoteHistory(updatedHistory: VoteHistoryEntry[]) {
-      setHistory(updatedHistory);
-    }
-    function handleResetVotes() {
-      // Do not clear history on reset
-    }
-    socket.on('updateWinningVoteHistory', handleUpdateWinningVoteHistory);
-    socket.on('votesReset', handleResetVotes);
-    return () => {
-      socket.off('updateWinningVoteHistory', handleUpdateWinningVoteHistory);
-      socket.off('votesReset', handleResetVotes);
-    };
-  }, []);
+  const handleUpdateWinningVoteHistory = (updatedHistory: VoteHistoryEntry[]) => {
+    setHistory(updatedHistory);
+  };
+
+  const handleResetVotes = () => {
+    // Do not clear history on reset
+  };
+
+  useSocketEvent('updateWinningVoteHistory', handleUpdateWinningVoteHistory);
+  useSocketEvent('votesReset', handleResetVotes);
 
   if (!history.length) return null;
 
