@@ -1,6 +1,7 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import crypto from 'crypto';
 
 const app = express();
 const httpServer = createServer(app);
@@ -60,7 +61,7 @@ interface VoteHistoryEntry {
 const rooms = new Map<string, Room>();
 
 /**
- * Generates a human-readable room ID (e.g., blue-apple-42).
+ * Generates a human-readable room ID (e.g., blue-apple-42-1a2b).
  * @returns {string} The generated room ID.
  */
 function generateRoomId(): string {
@@ -69,7 +70,9 @@ function generateRoomId(): string {
   const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
   const noun = nouns[Math.floor(Math.random() * nouns.length)];
   const number = Math.floor(10 + Math.random() * 90); // 2-digit number
-  return `${adj}-${noun}-${number}`;
+  // Use a cryptographically secure, long random hex string for uniqueness
+  const suffix = crypto.randomBytes(8).toString('hex'); // 16 hex chars
+  return `${adj}-${noun}-${number}-${suffix}`;
 }
 
 io.on('connection', (socket): void => {
