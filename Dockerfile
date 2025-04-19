@@ -54,7 +54,7 @@ EXPOSE 3001
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --spider -q http://localhost:3001/health || exit 1
+  CMD wget --spider -q http://localhost:80/health || exit 1
 
 # Start the server
 CMD ["npm", "start"]
