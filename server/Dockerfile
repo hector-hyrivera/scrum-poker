@@ -22,13 +22,13 @@ RUN chown -R appuser:appgroup /usr/src/app
 # Switch to non-root user
 USER appuser
 
-# Install dependencies and clean npm cache
-RUN npm install && npm cache clean --force
+# Install only production dependencies and clean npm cache
+RUN npm install --omit=dev && npm cache clean --force
 
 # Copy source code
 COPY . .
 
-# Build TypeScript
+# Build TypeScript (ensure build script does not depend on test/dev deps)
 RUN npm run build
 
 # Expose port
