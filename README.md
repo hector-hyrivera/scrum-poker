@@ -1,6 +1,23 @@
 # SCRUM Planning Poker
 
+[![Build Status](#)](#) [![License](LICENSE)](LICENSE) [![Node Version](https://img.shields.io/badge/node-16%2B-brightgreen)](https://nodejs.org/)
+
 A real-time SCRUM planning poker application that allows teams to estimate user stories collaboratively. Team members can join rooms, vote on estimates, and reveal results together.
+
+## Table of Contents
+
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Development](#development)
+- [Testing](#testing)
+- [API Reference](#api-reference)
+- [Accessibility & Security](#accessibility--security)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
 
 ## Features
 
@@ -13,73 +30,66 @@ A real-time SCRUM planning poker application that allows teams to estimate user 
 - Clean and modern UI
 - Track history of winning votes
 
-## Configuration
+## Screenshots
 
-### ESLint
-- Uses `typescript-eslint` for TypeScript linting.
-- Enforces React, React Hooks, and accessibility (`jsx-a11y`) best practices.
-- Custom rules for React Refresh and code quality.
+<!-- Add screenshots or GIFs here -->
 
-### TailwindCSS
-- Custom color palette and animations in `tailwind.config.js`.
-- Scans all relevant files for purging unused styles.
+## Getting Started
 
-### TypeScript
-- Strict mode enabled for both frontend and backend (`tsconfig.app.json`, `tsconfig.node.json`).
-- Enforces consistent file name casing for cross-platform safety.
-
-### Vite
-- Minimal config with React plugin.
-- Supports fast local development and production builds.
-
-## Prerequisites
+### Prerequisites
 
 - Node.js 16+ and npm
 - Docker (optional for containerized deployment)
 
-## Installation
+### Installation
 
 1. Clone the repository:
-```bash
-git clone <repository-url>
-cd scrum-poker
-```
+
+   ```bash
+   git clone <repository-url>
+   cd scrum-poker
+   ```
 
 2. Install frontend dependencies:
-```bash
-npm install
-```
+
+   ```bash
+   npm install
+   ```
 
 3. Install backend dependencies:
-```bash
-cd server
-npm install
-```
 
-## Running the Application
+   ```bash
+   cd server
+   npm install
+   ```
 
-### Local Development
+### Running the Application
+
+#### Local Development
 
 1. Start the backend server:
-```bash
-cd server
-npm run dev
-```
+
+   ```bash
+   cd server
+   npm run dev
+   ```
 
 2. In a new terminal, start the frontend development server:
-```bash
-# From the root directory
-npm run dev
-```
+
+   ```bash
+   # From the root directory
+   npm run dev
+   ```
 
 3. Open your browser and navigate to `http://localhost:3000`
 
-### Using Docker
+#### Using Docker
 
 1. Build and start the containers:
-```bash
-docker-compose up --build
-```
+
+   ```bash
+   docker-compose up --build
+   ```
 
 2. Access the application at `http://localhost:8085`
 
@@ -92,6 +102,10 @@ docker-compose up --build
 5. When everyone has voted, click "Reveal Votes" to show all estimates.
 6. Use "Reset Votes" to start a new round.
 
+## Configuration
+
+For detailed configuration, see [docs/configuration.md](docs/configuration.md).
+
 ## Development
 
 - **Frontend**: React with TypeScript, Vite, Material UI, Framer Motion, and Tailwind CSS
@@ -101,15 +115,42 @@ docker-compose up --build
 ### Additional Commands
 
 - Lint the code:
-```bash
-npm run lint
-```
+
+  ```bash
+  npm run lint
+  ```
 
 - Preview the production build:
-```bash
-npm run preview
-```
 
-## Deployment
+  ```bash
+  npm run preview
+  ```
 
-The project includes Docker configurations for containerized deployment. Use the `docker-compose` file to orchestrate the frontend and backend services.
+## Testing
+
+<!-- Add instructions for running tests, or note if not implemented -->
+
+## API Reference
+
+<!-- Briefly describe backend endpoints, or link to API docs -->
+
+## Accessibility & Security
+
+<!-- Note accessibility features and security best practices -->
+
+## Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+- Use feature/bugfix/hotfix branch naming conventions
+- Write clear, descriptive commit messages
+- Ensure code passes linting and tests
+- See [CONTRIBUTING.md](CONTRIBUTING.md) if available
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+## Contact
+
+For issues, open a GitHub issue or contact [your-email@example.com](mailto:your-email@example.com).
