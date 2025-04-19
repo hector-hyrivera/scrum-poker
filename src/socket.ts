@@ -79,7 +79,7 @@ socket.on('disconnect', () => {
   // Optionally handle cleanup or reconnection logic here
 });
 
-socket.on('connect_error', (error) => {
+socket.on('connect_error', (error: unknown) => {
   console.error('Socket connection error:', error);
 });
 

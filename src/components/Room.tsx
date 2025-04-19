@@ -3,7 +3,6 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { socket } from "../socket";
 import { useSocketEvent } from "./use-socket-event";
 import { motion, AnimatePresence } from "framer-motion";
-import { QRCodeSVG } from "qrcode.react";
 import {
   Box,
   Typography,
@@ -16,7 +15,6 @@ import {
 } from "@mui/material";
 import {
   ContentCopy as ContentCopyIcon,
-  QrCode as QrCodeIcon,
   ExitToApp as ExitToAppIcon,
   Visibility as VisibilityIcon,
   Refresh as RefreshIcon,
@@ -52,7 +50,7 @@ const Footer = (): JSX.Element => (
 );
 
 /**
- * Room page. Handles SCRUM Poker voting, socket events, QR code, and round state.
+ * Room page. Handles SCRUM Poker voting, socket events, and round state.
  * @returns {JSX.Element}
  */
 const Room = (): JSX.Element => {
@@ -61,7 +59,6 @@ const Room = (): JSX.Element => {
   const location = useLocation();
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [vote, setVote] = useState<string | null>(null);
-  const [showQRCode, setShowQRCode] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [winningValue, setWinningValue] = useState<string | null>(null);
   const [customRoundId, setCustomRoundId] = useState("");
@@ -100,10 +97,6 @@ const Room = (): JSX.Element => {
     );
     socket.emit("reset", roomId);
   }, [roomId]);
-
-  const toggleQRCode = useCallback(() => {
-    setShowQRCode((prev) => !prev);
-  }, []);
 
   // Socket event handlers
   function handleUserJoined(state: { users: Participant[]; revealed: boolean }) {
@@ -268,9 +261,6 @@ const Room = (): JSX.Element => {
             Room: {roomId}
           </Typography>
           <Stack direction="row" spacing={1}>
-            <IconButton onClick={toggleQRCode} title="Show/Hide QR Code">
-              <QrCodeIcon />
-            </IconButton>
             <IconButton
               onClick={() => copyToClipboard(roomUrl)}
               title="Copy Room Link"
@@ -290,14 +280,6 @@ const Room = (): JSX.Element => {
             </Button>
           </Stack>
         </Stack>
-        {showQRCode && (
-          <Box sx={{ mt: 2, textAlign: "center" }}>
-            <QRCodeSVG value={roomUrl} size={128} />
-            <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-              Scan to join or share link: {roomUrl}
-            </Typography>
-          </Box>
-        )}
       </Paper>
 
       <Box
