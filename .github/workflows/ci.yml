@@ -35,4 +35,4 @@ jobs:
           node-version: 18.x
       - run: npm ci
       - run: npm run build
-      - run: npm test
+      # - run: npm test  # Removed backend test step as user requested to remove all testing
