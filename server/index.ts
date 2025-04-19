@@ -61,7 +61,7 @@ interface VoteHistoryEntry {
 const rooms = new Map<string, Room>();
 
 /**
- * Generates a human-readable room ID (e.g., blue-apple-42-1a2b).
+ * Generates a human-readable room ID (e.g., blue-apple-42).
  * @returns {string} The generated room ID.
  */
 function generateRoomId(): string {
@@ -70,9 +70,7 @@ function generateRoomId(): string {
   const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
   const noun = nouns[Math.floor(Math.random() * nouns.length)];
   const number = Math.floor(10 + Math.random() * 90); // 2-digit number
-  // Use a cryptographically secure, long random hex string for uniqueness
-  const suffix = crypto.randomBytes(8).toString('hex'); // 16 hex chars
-  return `${adj}-${noun}-${number}-${suffix}`;
+  return `${adj}-${noun}-${number}`;
 }
 
 io.on('connection', (socket): void => {
