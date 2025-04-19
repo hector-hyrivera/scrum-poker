@@ -3,7 +3,7 @@ import { ThemeProvider, createTheme } from '@mui/material';
 import Home from './components/Home';
 import Room from './components/Room';
 import './App.css'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, JSX } from 'react';
 import { CssBaseline, IconButton } from '@mui/material';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
@@ -29,7 +29,12 @@ declare module '@mui/material/Button' {
   }
 }
 
-function App() {
+/**
+ * Main application component. Sets up MUI theme, dark mode, and routing.
+ *
+ * @returns Main app JSX element
+ */
+function App(): JSX.Element {
   const [darkMode, setDarkMode] = useState(false);
 
   const theme = createTheme({
@@ -202,6 +207,7 @@ function App() {
       <CssBaseline />
       <div style={{ position: 'relative', display: 'flex', justifyContent: 'flex-end', padding: '4px 8px 0 8px' }}>
         <IconButton
+          aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           onClick={() => setDarkMode(!darkMode)}
           color="inherit"
           style={{

@@ -13,6 +13,25 @@ A real-time SCRUM planning poker application that allows teams to estimate user 
 - Clean and modern UI
 - Track history of winning votes
 
+## Configuration
+
+### ESLint
+- Uses `typescript-eslint` for TypeScript linting.
+- Enforces React, React Hooks, and accessibility (`jsx-a11y`) best practices.
+- Custom rules for React Refresh and code quality.
+
+### TailwindCSS
+- Custom color palette and animations in `tailwind.config.js`.
+- Scans all relevant files for purging unused styles.
+
+### TypeScript
+- Strict mode enabled for both frontend and backend (`tsconfig.app.json`, `tsconfig.node.json`).
+- Enforces consistent file name casing for cross-platform safety.
+
+### Vite
+- Minimal config with React plugin.
+- Supports fast local development and production builds.
+
 ## Prerequisites
 
 - Node.js 16+ and npm

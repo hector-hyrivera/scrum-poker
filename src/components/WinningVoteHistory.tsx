@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, type JSX } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Chip, Stack } from '@mui/material';
 import { useSocketEvent } from './use-socket-event';
 
+/**
+ * Represents a single entry in the vote history.
+ */
 interface VoteHistoryEntry {
   id: string;
   votes: { name: string; vote: string | null; sessionId: string }[];
@@ -11,7 +14,11 @@ interface VoteHistoryEntry {
   timestamp: number;
 }
 
-export function WinningVoteHistory() {
+/**
+ * Displays the history of winning votes for each round.
+ * @returns {JSX.Element | null}
+ */
+export function WinningVoteHistory(): JSX.Element | null {
   const [history, setHistory] = useState<VoteHistoryEntry[]>([]);
 
   const handleUpdateWinningVoteHistory = (updatedHistory: VoteHistoryEntry[]) => {

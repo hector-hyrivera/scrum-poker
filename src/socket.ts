@@ -1,20 +1,51 @@
 import { io, Socket } from 'socket.io-client';
+import { getSocketUrl } from './env';
 
+/**
+ * Represents a user in a room.
+ */
 export interface User {
+  /**
+   * Unique user ID.
+   */
   id: string;
+  /**
+   * User's name.
+   */
   name: string;
+  /**
+   * User's current vote, or null if not voted.
+   */
   vote: string | null;
+  /**
+   * User's session ID.
+   */
   sessionId: string;
 }
 
+/**
+ * Represents the state of a room.
+ */
 export interface RoomState {
+  /**
+   * List of users in the room.
+   */
   users: User[];
+  /**
+   * Whether votes are currently revealed.
+   */
   revealed: boolean;
-  winningVoteHistory: string[]; // New property to track winning vote history
+  /**
+   * History of winning votes.
+   */
+  winningVoteHistory: string[];
 }
 
-const socketUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin;
+const socketUrl = getSocketUrl();
 
+/**
+ * Socket instance for real-time communication.
+ */
 const socket: Socket = io(socketUrl, {
   reconnection: true,
   reconnectionAttempts: 5,
@@ -52,7 +83,11 @@ socket.on('connect_error', (error) => {
   console.error('Socket connection error:', error);
 });
 
-const getSessionId = () => {
+/**
+ * Returns the session ID from localStorage, generating a new one if necessary.
+ * @returns {string}
+ */
+const getSessionId = (): string => {
   let sessionId = localStorage.getItem('sessionId');
   if (!sessionId) {
     sessionId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -63,6 +98,11 @@ const getSessionId = () => {
   return sessionId;
 };
 
+/**
+ * Creates a new room and returns the room ID and session ID.
+ * @param name - The user's name
+ * @returns Promise resolving to roomId and sessionId
+ */
 export const createRoom = (name: string): Promise<{ roomId: string; sessionId: string }> => {
   return new Promise((resolve) => {
     const sessionId = getSessionId();
@@ -75,6 +115,12 @@ export const createRoom = (name: string): Promise<{ roomId: string; sessionId: s
   });
 };
 
+/**
+ * Joins a room and returns the room state.
+ * @param roomId - The room to join
+ * @param name - The user's name
+ * @returns Promise resolving to RoomState
+ */
 export const joinRoom = (roomId: string, name: string): Promise<RoomState> => {
   return new Promise((resolve, reject) => {
     const sessionId = getSessionId();
@@ -93,38 +139,74 @@ export const joinRoom = (roomId: string, name: string): Promise<RoomState> => {
   });
 };
 
+/**
+ * Casts a vote in the specified room.
+ * @param roomId - The room ID
+ * @param vote - The vote value
+ */
 export const vote = (roomId: string, vote: string): void => {
   socket.emit('vote', { roomId, vote });
 };
 
+/**
+ * Reveals votes in the specified room.
+ * @param roomId - The room ID
+ */
 export const revealVotes = (roomId: string): void => {
   socket.emit('reveal', roomId);
 };
 
+/**
+ * Resets votes in the specified room.
+ * @param roomId - The room ID
+ */
 export const resetVotes = (roomId: string): void => {
   socket.emit('reset', roomId);
 };
 
+/**
+ * Registers a callback for the 'userJoined' event.
+ * @param callback - Callback with RoomState
+ */
 export const onUserJoined = (callback: (state: RoomState) => void): void => {
   socket.on('userJoined', callback);
 };
 
+/**
+ * Registers a callback for the 'userVoted' event.
+ * @param callback - Callback with RoomState
+ */
 export const onUserVoted = (callback: (state: RoomState) => void): void => {
   socket.on('userVoted', callback);
 };
 
+/**
+ * Registers a callback for the 'votesRevealed' event.
+ * @param callback - Callback function
+ */
 export const onVotesRevealed = (callback: () => void): void => {
   socket.on('votesRevealed', callback);
 };
 
+/**
+ * Registers a callback for the 'votesReset' event.
+ * @param callback - Callback function
+ */
 export const onVotesReset = (callback: () => void): void => {
   socket.on('votesReset', callback);
 };
 
+/**
+ * Registers a callback for the 'roomNotFound' event.
+ * @param callback - Callback function
+ */
 export const onRoomNotFound = (callback: () => void): void => {
   socket.on('roomNotFound', callback);
 };
 
+/**
+ * Cleans up all socket event listeners.
+ */
 export const cleanup = (): void => {
   socket.off('userJoined');
   socket.off('userVoted');
@@ -137,12 +219,9 @@ export const cleanup = (): void => {
   socket.off('connect_error');
 };
 
-// Update the onVotesRevealed event to include logic for tracking the winning vote
-socket.on('votesRevealed', () => {
-  calculateWinningVotes();
-});
-
-// Function to calculate winning votes based on current room state
+/**
+ * Calculates and updates the winning vote(s) for the current room state.
+ */
 const calculateWinningVotes = (): void => {
   socket.emit('getRoomState', (state: RoomState) => {
     const voteCounts: Record<string, number> = {};
@@ -161,5 +240,10 @@ const calculateWinningVotes = (): void => {
     socket.emit('updateWinningVoteHistory', winningVotes);
   });
 };
+
+// Update the onVotesRevealed event to include logic for tracking the winning vote
+socket.on('votesRevealed', () => {
+  calculateWinningVotes();
+});
 
 export { socket };

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, JSX } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { socket } from "../socket";
 import { useSocketEvent } from "./use-socket-event";
@@ -30,7 +30,11 @@ interface Participant {
   vote: string | null;
 }
 
-const Footer = () => (
+/**
+ * Footer component for displaying copyright.
+ * @returns {JSX.Element}
+ */
+const Footer = (): JSX.Element => (
   <Box
     component="footer"
     sx={{
@@ -47,7 +51,11 @@ const Footer = () => (
   </Box>
 );
 
-const Room = () => {
+/**
+ * Room page. Handles SCRUM Poker voting, socket events, QR code, and round state.
+ * @returns {JSX.Element}
+ */
+const Room = (): JSX.Element => {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -266,6 +274,7 @@ const Room = () => {
             <IconButton
               onClick={() => copyToClipboard(roomUrl)}
               title="Copy Room Link"
+              aria-label="Copy Room Link"
             >
               <ContentCopyIcon />
             </IconButton>
@@ -606,7 +615,11 @@ const Room = () => {
 
 export default Room;
 
-const copyToClipboard = (text: string) => {
+/**
+ * Copies text to clipboard and logs the result.
+ * @param text - The text to copy
+ */
+const copyToClipboard = (text: string): void => {
   navigator.clipboard
     .writeText(text)
     .then(() => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, JSX } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createRoom, joinRoom } from '../socket';
 import { useSocketEvent } from './use-socket-event';
@@ -17,7 +17,11 @@ interface ServerErrorPayload {
   message: string;
 }
 
-function Footer() {
+/**
+ * Footer component for displaying copyright.
+ * @returns JSX.Element
+ */
+function Footer(): JSX.Element {
   return (
     <Box
       component="footer"
@@ -36,7 +40,11 @@ function Footer() {
   );
 }
 
-export function Home() {
+/**
+ * Home page for SCRUM Poker. Handles room creation and joining, user input, and error feedback.
+ * @returns JSX.Element
+ */
+export function Home(): JSX.Element {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [name, setName] = useState("");
