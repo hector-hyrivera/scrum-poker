@@ -11,9 +11,6 @@ A real-time SCRUM planning poker application that allows teams to estimate user 
 - [Usage](#usage)
 - [Configuration](#configuration)
 - [Development](#development)
-- [Testing](#testing)
-- [API Reference](#api-reference)
-- [Accessibility & Security](#accessibility--security)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -124,25 +121,13 @@ For detailed configuration, see [docs/configuration.md](docs/configuration.md).
   npm run preview
   ```
 
-## Testing
-
-<!-- Add instructions for running tests, or note if not implemented -->
-
-## API Reference
-
-<!-- Briefly describe backend endpoints, or link to API docs -->
-
-## Accessibility & Security
-
-<!-- Note accessibility features and security best practices -->
-
 ## Contributing
 
 Contributions are welcome! Please follow these guidelines:
 
 - Use feature/bugfix/hotfix branch naming conventions
 - Write clear, descriptive commit messages
-- Ensure code passes linting and tests
+- Ensure code passes linting.
 - See [CONTRIBUTING.md](CONTRIBUTING.md) if available
 
 ## License
