@@ -1,6 +1,5 @@
 # SCRUM Planning Poker
-
-[![Build Status](#)](#) [![License](LICENSE)](LICENSE) [![Node Version](https://img.shields.io/badge/node-16%2B-brightgreen)](https://nodejs.org/)
+[![License](LICENSE)](LICENSE) [![Node Version](https://img.shields.io/badge/node-16%2B-brightgreen)](https://nodejs.org/)
 
 A real-time SCRUM planning poker application that allows teams to estimate user stories collaboratively. Team members can join rooms, vote on estimates, and reveal results together.
 
@@ -17,7 +16,6 @@ A real-time SCRUM planning poker application that allows teams to estimate user 
 - [Accessibility & Security](#accessibility--security)
 - [Contributing](#contributing)
 - [License](#license)
-- [Contact](#contact)
 
 ## Features
 
@@ -150,7 +148,3 @@ Contributions are welcome! Please follow these guidelines:
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
-## Contact
-
-For issues, open a GitHub issue or contact [your-email@example.com](mailto:your-email@example.com).
