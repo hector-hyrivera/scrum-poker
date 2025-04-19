@@ -7,8 +7,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "types": ["node", "vitest"]
+    "types": ["node"]
   },
-  "include": ["*.ts", "__tests__"],
+  "include": ["*.ts"],
   "exclude": ["node_modules"]
 } 
