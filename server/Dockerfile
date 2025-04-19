@@ -1,53 +1,20 @@
-# ---------- Builder Stage ----------
-FROM node:23.2.0-alpine AS builder
-
-# Metadata labels
-LABEL maintainer="hector@hyrivera.com"
-LABEL org.opencontainers.image.source="https://github.com/hector-hyrivera/scrum-poker"
-LABEL org.opencontainers.image.version="1.1.0"
-LABEL org.opencontainers.image.description="Scrum Poker server component"
+# Use Node.js LTS version
+FROM node:20-alpine
 
 # Create app directory
 WORKDIR /usr/src/app
 
-# Install dependencies as root for build
+# Copy package files
 COPY package*.json ./
-RUN npm ci
+
+# Install dependencies
+RUN npm install
 
 # Copy source code
 COPY . .
 
-# Build TypeScript and Vite output
+# Build TypeScript
 RUN npm run build
-
-# ---------- Production Stage ----------
-FROM node:23.2.0-alpine AS production
-
-# Metadata labels
-LABEL maintainer="hector@hyrivera.com"
-LABEL org.opencontainers.image.source="https://github.com/hector-hyrivera/scrum-poker"
-LABEL org.opencontainers.image.version="1.1.0"
-LABEL org.opencontainers.image.description="Scrum Poker server component"
-
-# Create app directory
-WORKDIR /usr/src/app
-
-# Create a non-root user and group
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
-# Copy only production dependencies
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
-
-# Copy built app from builder
-COPY --from=builder /usr/src/app/dist ./dist
-COPY --from=builder /usr/src/app/node_modules ./node_modules
-COPY --from=builder /usr/src/app/package.json ./package.json
-COPY --from=builder /usr/src/app/.env* ./
-
-# Change ownership
-RUN chown -R appuser:appgroup /usr/src/app
-USER appuser
 
 # Expose port
 EXPOSE 3001

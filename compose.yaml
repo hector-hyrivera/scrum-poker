@@ -1,5 +1,8 @@
 services:
   frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: ghcr.io/hector-hyrivera/scrum-poker:main
     ports:
       - "8085:80"
@@ -16,6 +19,9 @@ services:
       - backend
 
   backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
     image: ghcr.io/hector-hyrivera/scrum-poker-server:main
     ports:
       - "3085:3001"
