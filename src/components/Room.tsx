@@ -20,7 +20,8 @@ import {
   Refresh as RefreshIcon,
   EmojiEvents as EmojiEventsIcon,
 } from "@mui/icons-material";
-import { WinningVoteHistory } from "./WinningVoteHistory";
+import React, { Suspense } from 'react';
+const WinningVoteHistory = React.lazy(() => import('./WinningVoteHistory'));
 
 interface Participant {
   id: string;
@@ -589,7 +590,9 @@ const Room = (): JSX.Element => {
           </Stack>
         </Paper>
       </Box>
-      <WinningVoteHistory />
+      <Suspense fallback={<div>Loading history...</div>}>
+        <WinningVoteHistory />
+      </Suspense>
       <Footer />
     </Box>
   );

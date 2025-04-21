@@ -1,7 +1,6 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import crypto from 'crypto';
 
 const app = express();
 const httpServer = createServer(app);

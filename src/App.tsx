@@ -1,12 +1,13 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
 import Home from './components/Home';
-import Room from './components/Room';
+const Room = React.lazy(() => import('./components/Room'));
 import './App.css'
 import { useState, useEffect, JSX } from 'react';
 import { CssBaseline, IconButton } from '@mui/material';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import React, { Suspense } from 'react';
 
 declare module '@mui/material/styles' {
   interface Palette {
@@ -224,7 +225,11 @@ function App(): JSX.Element {
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/room/:roomId" element={<Room />} />
+          <Route path="/room/:roomId" element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <Room />
+            </Suspense>
+          } />
         </Routes>
       </Router>
     </ThemeProvider>

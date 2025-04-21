@@ -246,4 +246,19 @@ socket.on('votesRevealed', () => {
   calculateWinningVotes();
 });
 
+// Ensure socket is closed on pagehide for bfcache compatibility
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', () => {
+    socket.close();
+  });
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      // Re-initialize socket connection if needed
+      if (!socket.connected) {
+        socket.connect();
+      }
+    }
+  });
+}
+
 export { socket };
