@@ -1,71 +1,108 @@
-- You are an expert in TypeScript, Node.js, Next.js App Router, React, Shadcn UI, and Tailwind and Framer Motion.
+# Copilot Instructions
 
-- Code Style and Structure
+## Project Stack and Focus
 
-  - Write concise, technical TypeScript code with accurate examples.
-  - Use functional and declarative programming patterns; avoid classes.
-  - Prefer iteration and modularization over code duplication.
-  - Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
-  - Structure files: exported component, subcomponents, helpers, static content, types.
+- You are an expert in TypeScript, React, AstroJS 5.x, AstroDB, Shadcn UI, and Tailwind CSS.
+- Prioritize clear, readable, and maintainable code.
+- Follow the latest project requirements and conventions.
 
-- Naming Conventions
+## Code Style and Structure
 
-  - All components should go in src/components and be named like new-component.tsx
-  - Use lowercase with dashes for directories (e.g., components/auth-wizard).
-  - Favor named exports for components.
+- Write concise, technical TypeScript code with accurate examples.
+- Use functional and declarative programming patterns; avoid classes.
+- Prefer iteration and modularization over code duplication.
+- Use descriptive variable names (e.g., isLoading, hasError).
+- Structure files: exported component, subcomponents, helpers, static content, types.
 
-- TypeScript Usage
+## Naming Conventions
 
-  - Use TypeScript for all code; prefer interfaces over types.
-  - Avoid enums; use maps instead.
-  - Use functional components with TypeScript interfaces.
+- Components: PascalCase (UserProfile.tsx)
+- Regular files: kebab-case (api-utils.ts)
+- Tests: _.test.ts or _.spec.ts
+- Functions/Vars: camelCase
+- Constants: UPPER_SNAKE_CASE
+- Types/Classes: PascalCase
 
-- Syntax and Formatting
+## TypeScript Usage
 
-  - Use the "function" keyword for pure functions.
-  - Avoid unnecessary curly braces in conditionals; use concise syntax for simple statements.
-  - Use declarative JSX.
+- Use TypeScript for all code.
+- Prefer types over interfaces.
+- Use explicit return types for all functions.
+- Use generics for reusable code and type guards for safety.
+- Use unknown over any.
+- Avoid enums; use objects or maps instead.
 
-- UI and Styling
+## Syntax and Formatting
 
-  - Use Shadcn UI, and Tailwind for components and styling.
-  - Implement responsive design with Tailwind CSS; use a mobile-first approach.
+- 2 space indent, 80 char limit, template literals.
+- Trailing commas, same-line braces, arrow functions.
+- Prop destructuring, TS path aliases, env vars.
+- Use declarative JSX.
 
-- Performance Optimization
+## UI and Styling
 
-  - Minimize 'use client', 'useEffect', and 'setState'; favor React Server Components (RSC).
-  - Wrap client components in Suspense with fallback.
-  - Use dynamic loading for non-critical components.
-  - Optimize images: use WebP format, include size data, implement lazy loading.
+- Use Shadcn UI and Tailwind for components and styling.
+- Implement responsive design with Tailwind CSS; use a mobile-first approach.
+- Follow a consistent color palette and CSS variables.
+- Ensure accessibility (WCAG 2.1 AA), semantic HTML, ARIA labels, and keyboard navigation.
 
-- Key Conventions
+## Error Handling & Logging
 
-  - Use 'nuqs' for URL search parameter state management.
-  - Optimize Web Vitals (LCP, CLS, FID).
-  - Limit 'use client':
-    - Favor server components and Next.js SSR.
-    - Use only for Web API access in small components.
-    - Avoid for data fetching or state management.
-  - Follow Next.js docs for Data Fetching, Rendering, and Routing.
-  - While creating placeholder images as a part of your seed data, use https://placekitten.com/
-  - Place both the /app and /components folders under a /src directory. This organization offers several benefits:
-    - It helps maintain a clean and organized project structure.
-    - It allows for easier navigation and management of components and pages.
-    - It adheres to common industry standards, making it easier for other developers to understand and contribute to the project.
-    - It provides a clear separation between application logic (in /src/app) and UI components (in /src/components), improving code readability and reusability.
-    - It simplifies the process of creating new pages and components, as you can easily find the corresponding files in the /src directory.
-    - It makes the project more modular and easier to scale as the application grows.
-    - It adheres to the principle of separation of concerns, where different aspects of the application are handled by different directories.
+- Use custom error classes with clear messages and stack traces in dev.
+- Provide user-friendly messages and fallback UI.
+- Standardize error format and include retry logic for network errors.
+- Use structured logging with request IDs and severity levels.
+
+## State Management
+
+- Use memoization and selective re-renders for performance.
+- Avoid prop drilling and batch state updates.
+
+## API & Data
+
+- REST: Use HTTP conventions, status codes, JSON:API spec, input validation, and versioning.
+- GraphQL: Use schemas, fragments, caching, and prevent N+1 queries.
+- SQL: Use prepared statements, indexing, access control, and prevent injection.
+
+## Testing
+
+- Group tests by feature, use descriptive names, and mock externals.
+- Follow naming conventions: _.test.ts or _.spec.ts
+
+## Documentation
+
+- Use JSDoc for interfaces, types, and usage examples.
+- Document component props/types, state, and accessibility.
+- Maintain a project README and update the decisions_and_changes_log.md.
+
+## Build, Deployment, and Repo
+
+- Run linting, tests, and optimize bundles before deploy.
+- Use semantic versioning and blue-green deployment.
+- Follow branch naming: feature/_, bugfix/_, hotfix/_, release/_, chore/_
+- Use commit messages: <type>[scope]: desc (feat, fix, docs, style, refactor, test, chore)
+- Ensure CI passes, docs are updated, and tests pass before merging.
+
+## Browser Compatibility & Responsiveness
+
+- Support latest 2 browser versions; use feature detection and polyfills.
+- Mobile-first development with Tailwind breakpoints.
+- Use responsive images and proper CSS units.
+
+## Security
+
+- Sanitize and validate all input, escape output, and secure file uploads.
+- Use JWT for auth, secure sessions, token refresh, and RBAC.
+- Set CSP headers, prevent XSS/CSRF, and follow OWASP best practices.
 
 ## Components Organization
 
-Within the /src/components folder, consider organizing components by type or feature:
+Within the /src/components folder, organize components by type or feature:
 
-By Type: Group components like forms, buttons, layout elements, etc.
+- By Type: Group components like forms, buttons, layout elements, etc.
+- By Feature: For larger applications, group components related to specific features or domains.
 
-By Feature: For larger applications, group components related to specific features or domains
-
-For example:
+Example:
 
   /src/components
   ├── /ui
@@ -79,8 +116,6 @@ For example:
       ├── /Navbar
       └── /Footer
 
-- Private Components: For components used only within specific pages, you can create a _components folder within the relevant /app subdirectory.
-
+- Private Components: For components used only within specific pages, create a _components folder within the relevant /app subdirectory.
 - Shared Components: The /src/components folder should contain reusable components used across multiple pages or features.
-
-- Modular Approach: As your project grows, consider adopting a more modular structure, where each feature or domain has its own folder containing components, hooks, and utilities specific to that feature.
+- Modular Approach: As your project grows, adopt a modular structure, where each feature or domain has its own folder containing components, hooks, and utilities specific to that feature.
