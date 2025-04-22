@@ -24,7 +24,9 @@
     "noUncheckedSideEffectImports": true,
     "types": [
       "node",
-      "vitest"
+      "vitest",
+      "react",
+      "react-dom"
     ]
   },
   "include": ["src", "test"]

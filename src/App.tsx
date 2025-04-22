@@ -1,34 +1,36 @@
+import React, { Suspense, useState, useEffect, useMemo, JSX } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
 import Home from './components/Home';
 const Room = React.lazy(() => import('./components/Room'));
 import './App.css'
-import { useState, useEffect, JSX } from 'react';
-import { CssBaseline, IconButton } from '@mui/material';
+import { CssBaseline, Switch, FormControlLabel } from '@mui/material';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
-import React, { Suspense } from 'react';
 
-declare module '@mui/material/styles' {
-  interface Palette {
-    accent: Palette['primary'];
-  }
-  interface PaletteOptions {
-    accent?: PaletteOptions['primary'];
-  }
+// Theme toggle button as a separate component
+interface ThemeToggleButtonProps {
+  darkMode: boolean;
+  onToggle: () => void;
 }
 
-declare module '@mui/material/Chip' {
-  interface ChipPropsColorOverrides {
-    accent: true;
-  }
-}
-
-declare module '@mui/material/Button' {
-  interface ButtonPropsColorOverrides {
-    accent: true;
-  }
-}
+const ThemeToggleSwitch = ({ darkMode, onToggle }: ThemeToggleButtonProps) => (
+  <FormControlLabel
+    control={
+      <Switch
+        checked={darkMode}
+        onChange={onToggle}
+        color="primary"
+        inputProps={{
+          'aria-label': darkMode ? 'Switch to light mode' : 'Switch to dark mode',
+        }}
+      />
+    }
+    label={darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+    labelPlacement="start"
+    className="ml-auto"
+  />
+);
 
 /**
  * Main application component. Sets up MUI theme, dark mode, and routing.
@@ -36,9 +38,18 @@ declare module '@mui/material/Button' {
  * @returns Main app JSX element
  */
 function App(): JSX.Element {
-  const [darkMode, setDarkMode] = useState(false);
+  // Persist dark mode preference in localStorage
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved ? saved === 'true' : false;
+  });
 
-  const theme = createTheme({
+  useEffect(() => {
+    localStorage.setItem('darkMode', String(darkMode));
+  }, [darkMode]);
+
+  // Memoize theme for performance
+  const theme = useMemo(() => createTheme({
     palette: {
       mode: darkMode ? 'dark' : 'light',
       primary: {
@@ -53,12 +64,6 @@ function App(): JSX.Element {
         dark: darkMode ? '#ec407a' : '#5D6D7E',
         contrastText: '#FFFFFF',
       },
-      accent: {
-        main: darkMode ? '#ffb74d' : '#49a942',
-        light: darkMode ? '#ffe97d' : '#6bc164',
-        dark: darkMode ? '#c88719' : '#3a8a34',
-        contrastText: '#FFFFFF',
-      },
       background: {
         default: darkMode ? '#121212' : '#FFFFFF',
         paper: darkMode ? '#1E1E1E' : 'transparent',
@@ -70,134 +75,17 @@ function App(): JSX.Element {
     },
     typography: {
       fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-      h1: {
-        fontWeight: 600,
-        letterSpacing: '-0.02em',
-      },
-      h2: {
-        fontWeight: 600,
-        letterSpacing: '-0.02em',
-      },
-      h3: {
-        fontWeight: 600,
-        letterSpacing: '-0.02em',
-      },
-      h4: {
-        fontWeight: 600,
-        letterSpacing: '-0.02em',
-      },
-      h5: {
-        fontWeight: 600,
-        letterSpacing: '-0.02em',
-      },
-      h6: {
-        fontWeight: 600,
-        letterSpacing: '-0.02em',
-      },
-      subtitle1: {
-        fontWeight: 500,
-        letterSpacing: '0.01em',
-      },
-      body1: {
-        letterSpacing: '0.01em',
-      },
-      button: {
-        fontWeight: 600,
-        letterSpacing: '0.02em',
-      },
+      h1: { fontWeight: 600, letterSpacing: '-0.02em' },
+      h2: { fontWeight: 600, letterSpacing: '-0.02em' },
+      h3: { fontWeight: 600, letterSpacing: '-0.02em' },
+      h4: { fontWeight: 600, letterSpacing: '-0.02em' },
+      h5: { fontWeight: 600, letterSpacing: '-0.02em' },
+      h6: { fontWeight: 600, letterSpacing: '-0.02em' },
+      subtitle1: { fontWeight: 500, letterSpacing: '0.01em' },
+      body1: { letterSpacing: '0.01em' },
+      button: { fontWeight: 600, letterSpacing: '0.02em' },
     },
-    components: {
-      MuiCssBaseline: {
-        styleOverrides: {
-          body: {
-            margin: 0, // Removes any default margin
-            padding: 0, // Removes any default padding
-            minHeight: '100vh',
-            backgroundColor: '#f9fafb', // Matches Tailwind's background color
-          },
-        },
-      },
-      MuiButton: {
-        styleOverrides: {
-          root: {
-            textTransform: 'none',
-            borderRadius: 12,
-            padding: '8px 24px',
-            fontWeight: 500,
-            transition: 'all 0.2s ease-in-out',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-            },
-          },
-          contained: {
-            boxShadow: 'none',
-            '&:hover': {
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            },
-          },
-          outlined: {
-            borderWidth: 2,
-            '&:hover': {
-              borderWidth: 2,
-            },
-          },
-        },
-      },
-      MuiPaper: {
-        styleOverrides: {
-          root: {
-            borderRadius: 0,
-            boxShadow: 'none',
-            background: 'transparent',
-            border: 'none',
-          },
-        },
-      },
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            borderRadius: 12,
-            boxShadow: 'none',
-            background: 'rgba(255, 255, 255, 0.7)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
-            transition: 'all 0.2s ease-in-out',
-          },
-        },
-      },
-      MuiTextField: {
-        styleOverrides: {
-          root: {
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 12,
-              backdropFilter: 'blur(8px)',
-              backgroundColor: 'rgba(255, 255, 255, 0.7)',
-              transition: 'all 0.2s ease-in-out',
-            },
-          },
-        },
-      },
-      MuiChip: {
-        styleOverrides: {
-          root: {
-            borderRadius: 8,
-            backdropFilter: 'blur(8px)',
-            transition: 'all 0.2s ease-in-out',
-            fontWeight: 600,
-            border: '1px solid rgba(255, 255, 255, 0.3)',
-          },
-        },
-      },
-      MuiContainer: {
-        styleOverrides: {
-          root: {
-            maxWidth: 'none !important',
-            padding: '0 !important',
-          },
-        },
-      },
-    },
-  });
+  }), [darkMode]);
 
   useEffect(() => {
     document.body.style.backgroundColor = theme.palette.background.default;
@@ -206,29 +94,25 @@ function App(): JSX.Element {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div style={{ position: 'relative', display: 'flex', justifyContent: 'flex-end', padding: '4px 8px 0 8px' }}>
-        <IconButton
-          aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-          onClick={() => setDarkMode(!darkMode)}
-          color="inherit"
-          style={{
-            backgroundColor: darkMode ? '#424242' : '#E0E0E0',
-            color: darkMode ? '#FFFFFF' : '#000000',
-            borderRadius: '50%',
-            padding: '4px 4px 0 4px', // Updated padding
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-          }}
-        >
-          {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
-        </IconButton>
+      <div className="flex justify-end items-center p-2 relative w-full">
+        <div className="absolute right-4 top-4 z-50">
+          <ThemeToggleSwitch darkMode={darkMode} onToggle={() => setDarkMode((v) => !v)} />
+        </div>
       </div>
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/room/:roomId" element={
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={null}>
               <Room />
             </Suspense>
+          } />
+          {/* 404 fallback route */}
+          <Route path="*" element={
+            <div className="flex flex-col items-center justify-center h-96">
+              <h2 className="text-2xl font-bold mb-4">404 - Page Not Found</h2>
+              <p className="text-gray-600">Sorry, the page you are looking for does not exist.</p>
+            </div>
           } />
         </Routes>
       </Router>

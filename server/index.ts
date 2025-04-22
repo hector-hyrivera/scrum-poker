@@ -1,9 +1,15 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import pino from 'pino';
+import compression from 'compression';
+
+const logger = pino({ level: process.env.NODE_ENV === 'production' ? 'info' : 'debug' });
 
 const app = express();
+app.use(compression());
 const httpServer = createServer(app);
+httpServer.keepAliveTimeout = 60000; // 60 seconds, adjust as needed
 const io = new Server(httpServer, {
   cors: {
     origin: '*',
@@ -73,15 +79,13 @@ function generateRoomId(): string {
 }
 
 io.on('connection', (socket): void => {
-  console.log('User connected:', socket.id);
-
-  // Track the room the socket is in
+  logger.info(`User connected: ${socket.id}`);
   socket.data.roomId = null;
 
   /**
    * Handles getting the current room state.
    */
-  socket.on('getRoomState', (roomId: string): void => {
+  socket.on('getRoomState', async (roomId: string): Promise<void> => {
     const room = rooms.get(roomId);
     if (room) {
       socket.emit('roomState', { users: room.users, revealed: room.revealed });
@@ -93,7 +97,7 @@ io.on('connection', (socket): void => {
   /**
    * Handles room creation.
    */
-  socket.on('createRoom', (data: { name: string; sessionId: string }): void => {
+  socket.on('createRoom', async (data: { name: string; sessionId: string }): Promise<void> => {
     const { name, sessionId } = data;
     const roomId = generateRoomId();
     const user: User = { id: socket.id, name, vote: null, sessionId };
@@ -108,41 +112,29 @@ io.on('connection', (socket): void => {
   /**
    * Handles joining a room.
    */
-  socket.on('joinRoom', (data: { roomId: string; name: string; sessionId: string }): void => {
+  socket.on('joinRoom', async (data: { roomId: string; name: string; sessionId: string }): Promise<void> => {
     const { roomId, name, sessionId } = data;
-    console.log('joinRoom called with sessionId:', sessionId, 'roomId:', roomId, 'name:', name);
-
+    logger.info({ sessionId, roomId, name }, 'joinRoom called');
     const room = rooms.get(roomId);
-
     if (!room) {
       socket.emit('roomNotFound');
       return;
     }
-
     const existingUser = room.users.find((user: User) => user.sessionId === sessionId);
     if (existingUser) {
-      console.log('Existing user found with sessionId:', sessionId);
+      logger.info({ sessionId }, 'Existing user found');
       existingUser.id = socket.id;
       socket.join(roomId);
-      socket.data.roomId = roomId; // Track the room ID
+      socket.data.roomId = roomId;
       socket.emit('userJoined', { users: room.users, revealed: room.revealed });
       socket.emit('roomState', { users: room.users, revealed: room.revealed });
       socket.emit('updateWinningVoteHistory', room.history);
       return;
     }
-
-    console.log('No existing user found with sessionId:', sessionId);
-
-    const nameTaken = room.users.some((user: User) => user.name === name);
-    if (nameTaken) {
-      socket.emit('nameTaken');
-      return;
-    }
-
     const user: User = { id: socket.id, name, vote: null, sessionId };
     room.users.push(user);
     socket.join(roomId);
-    socket.data.roomId = roomId; // Track the room ID
+    socket.data.roomId = roomId;
     io.to(roomId).emit('userJoined', { users: room.users, revealed: room.revealed });
     socket.emit('roomState', { users: room.users, revealed: room.revealed });
     socket.emit('updateWinningVoteHistory', room.history);
@@ -151,15 +143,13 @@ io.on('connection', (socket): void => {
   /**
    * Handles voting in a room.
    */
-  socket.on('vote', (data: { roomId: string; vote: string }): void => {
+  socket.on('vote', async (data: { roomId: string; vote: string }): Promise<void> => {
     const { roomId, vote } = data;
     const room = rooms.get(roomId);
-
     if (!room) {
       socket.emit('roomNotFound');
       return;
     }
-
     const userIndex = room.users.findIndex((user: User) => user.id === socket.id);
     if (userIndex !== -1) {
       room.users[userIndex].vote = vote;
@@ -170,15 +160,13 @@ io.on('connection', (socket): void => {
   /**
    * Handles revealing votes for a round.
    */
-  socket.on('reveal', (data: { roomId: string; roundId?: string } | string): void => {
+  socket.on('reveal', async (data: { roomId: string; roundId?: string } | string): Promise<void> => {
     const { roomId, roundId } = typeof data === 'string' ? { roomId: data, roundId: undefined } : data;
     const room = rooms.get(roomId);
-
     if (!room) {
       socket.emit('roomNotFound');
       return;
     }
-
     room.revealed = true;
     const votes = room.users.map((user: User) => user.vote).filter((vote: string | null): vote is string => vote !== null);
     if (votes.length > 0) {
@@ -207,7 +195,7 @@ io.on('connection', (socket): void => {
   /**
    * Handles resetting votes for a round (does not clear history).
    */
-  socket.on('reset', (roomId: string): void => {
+  socket.on('reset', async (roomId: string): Promise<void> => {
     const room = rooms.get(roomId);
     if (!room) {
       socket.emit('roomNotFound');
@@ -223,23 +211,20 @@ io.on('connection', (socket): void => {
    * Handles user disconnection and room cleanup.
    */
   socket.on('disconnect', (): void => {
-    console.log('User disconnected:', socket.id);
+    logger.info(`User disconnected: ${socket.id}`);
     const roomId = socket.data.roomId;
-
     if (roomId) {
       const room = rooms.get(roomId);
       if (room) {
         const initialUserCount = room.users.length;
         room.users = room.users.filter((user: User) => user.id !== socket.id);
-
         if (room.users.length < initialUserCount) {
           if (room.users.length === 0) {
-            // Delay room deletion to allow for potential reconnection
             setTimeout((): void => {
               const currentRoom = rooms.get(roomId);
               if (currentRoom && currentRoom.users.length === 0) {
                 rooms.delete(roomId);
-                console.log(`Room ${roomId} deleted as it's empty.`);
+                logger.info(`Room ${roomId} deleted as it's empty.`);
               }
             }, 5000); // 5-second delay to allow for reconnection
           } else {
@@ -253,5 +238,5 @@ io.on('connection', (socket): void => {
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, (): void => {
-  console.log(`Server running on port ${PORT}`);
+  logger.info(`Server running on port ${PORT}`);
 });
