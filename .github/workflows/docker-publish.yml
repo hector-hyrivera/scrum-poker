@@ -91,7 +91,11 @@ jobs:
           cache-to: type=gha,mode=max
 
       # Optional: Verify images
+      - name: Pull frontend image
+        run: docker pull ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:main
       - name: Inspect frontend image
         run: docker image inspect ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:main
+      - name: Pull backend image
+        run: docker pull ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:main
       - name: Inspect backend image
         run: docker image inspect ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:main
