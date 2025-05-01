@@ -92,6 +92,6 @@ jobs:
 
       # Optional: Verify images
       - name: Inspect frontend image
-        run: docker image inspect ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:latest
+        run: docker image inspect ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:main
       - name: Inspect backend image
-        run: docker image inspect ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:latest
+        run: docker image inspect ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:main
