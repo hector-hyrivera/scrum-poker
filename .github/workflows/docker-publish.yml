@@ -24,6 +24,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Install frontend dependencies
+      - name: Install frontend dependencies
+        run: npm ci
+
+      # Build frontend (optional, if you want to cache build artifacts)
+      - name: Build frontend
+        run: npm run build
+
+      # Install backend dependencies
+      - name: Install backend dependencies
+        run: cd server && npm ci
+
+      # Optional: Build backend (if applicable)
+      # - name: Build backend
+      #   run: cd server && npm run build
+
       # Node modules cache (frontend)
       - name: Cache node_modules (frontend)
         uses: actions/cache@v4
@@ -31,8 +47,6 @@ jobs:
           path: |
             node_modules
             .next/cache
-            .astro
-            .vite
           key: ${{ runner.os }}-frontend-node-${{ hashFiles('package-lock.json', 'yarn.lock', 'pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-frontend-node-
