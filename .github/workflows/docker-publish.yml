@@ -2,7 +2,11 @@ name: Docker Build and Push
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+
+concurrency:
+  group: docker-publish-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   REGISTRY: ghcr.io
@@ -19,6 +23,28 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # Node modules cache (frontend)
+      - name: Cache node_modules (frontend)
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .next/cache
+            .astro
+            .vite
+          key: ${{ runner.os }}-frontend-node-${{ hashFiles('package-lock.json', 'yarn.lock', 'pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-frontend-node-
+
+      # Node modules cache (backend)
+      - name: Cache node_modules (backend)
+        uses: actions/cache@v4
+        with:
+          path: server/node_modules
+          key: ${{ runner.os }}-backend-node-${{ hashFiles('server/package-lock.json', 'server/yarn.lock', 'server/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-backend-node-
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -44,8 +70,8 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.frontend-meta.outputs.tags }}
           labels: ${{ steps.frontend-meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:buildcache,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # Backend image
       - name: Extract metadata for backend Docker image
@@ -61,5 +87,11 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.backend-meta.outputs.tags }}
           labels: ${{ steps.backend-meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:buildcache,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Optional: Verify images
+      - name: Inspect frontend image
+        run: docker image inspect ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:latest
+      - name: Inspect backend image
+        run: docker image inspect ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:latest
