@@ -10,7 +10,6 @@ interface VoteHistoryEntry {
   votes: { name: string; vote: string | null; sessionId: string }[];
   participants: number;
   winningCard: string;
-  winnerName?: string;
   timestamp: number;
 }
 
@@ -46,9 +45,8 @@ export function WinningVoteHistory(): JSX.Element | null {
         <TableHead>
           <TableRow>
             <TableCell>Round</TableCell>
-            <TableCell>Winner</TableCell>
-            <TableCell>Winning Card</TableCell>
             <TableCell>Participants</TableCell>
+            <TableCell>Winning Card</TableCell>
             <TableCell>Votes</TableCell>
             <TableCell>Time</TableCell>
           </TableRow>
@@ -57,9 +55,8 @@ export function WinningVoteHistory(): JSX.Element | null {
           {history.map((entry) => (
             <TableRow key={entry.id}>
               <TableCell>{entry.id}</TableCell>
-              <TableCell>{entry.winnerName || '-'}</TableCell>
-              <TableCell>{entry.winningCard}</TableCell>
               <TableCell>{entry.participants}</TableCell>
+              <TableCell>{entry.winningCard}</TableCell>
               <TableCell>
                 <Stack direction="row" spacing={1}>
                   {entry.votes.map((v, idx) => (

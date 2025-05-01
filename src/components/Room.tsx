@@ -63,6 +63,7 @@ const Room = (): JSX.Element => {
   const [isRevealed, setIsRevealed] = useState(false);
   const [winningValue, setWinningValue] = useState<string | null>(null);
   const [customRoundId, setCustomRoundId] = useState("");
+  const [currentRoundLabel, setCurrentRoundLabel] = useState<string>("");
 
   const name = location.state?.name;
 
@@ -130,6 +131,17 @@ const Room = (): JSX.Element => {
   useSocketEvent("roomNotFound", handleRoomNotFound);
   useSocketEvent("votesReset", handleVotesReset);
 
+  // Listen for vote history updates to get the latest round label
+  useSocketEvent<{ id: string }[]>(
+    "updateWinningVoteHistory",
+    (history) => {
+      if (history && history.length > 0) {
+        const last = history[history.length - 1];
+        setCurrentRoundLabel(last.id);
+      }
+    }
+  );
+
   // Join room and subscribe to roomState
   // (Retain useEffect for imperative join/emit logic, not for socket event subscriptions)
   useEffect(() => {
@@ -140,10 +152,13 @@ const Room = (): JSX.Element => {
     const sessionId = localStorage.getItem("sessionId");
     socket.emit("joinRoom", { roomId, name, sessionId });
     socket.emit("getRoomState", roomId);
-    function handleRoomState(state: { users: Participant[]; revealed: boolean; winningValue?: string | null }) {
+    function handleRoomState(state: { users: Participant[]; revealed: boolean; winningValue?: string | null; history?: { id: string }[] }) {
       setParticipants(state.users);
       setIsRevealed(state.revealed);
       if (state.winningValue) setWinningValue(state.winningValue);
+      if (state.history && state.history.length > 0) {
+        setCurrentRoundLabel(state.history[state.history.length - 1].id);
+      }
     }
     socket.on("roomState", handleRoomState);
     return () => {
@@ -153,59 +168,46 @@ const Room = (): JSX.Element => {
 
   useEffect(() => {
     if (isRevealed && participants.length > 0) {
+      // Exclude '?' and '☕' from the vote tally
       const votes = participants
         .map((p) => p.vote)
-        .filter((v): v is string => v !== null);
+        .filter((v): v is string => v !== null && v !== '?' && v !== '☕');
 
       if (votes.length === 0) {
         setWinningValue(null);
         return;
       }
 
+      // Count votes
       const counts: Record<string, number> = votes.reduce((acc, vote) => {
         acc[vote] = (acc[vote] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
-      const countValues = Object.values(counts);
-      const uniqueVoteValues = Object.keys(counts);
+      // Find the max count (majority)
+      const maxCount = Math.max(...Object.values(counts));
+      const majorityVotes = Object.entries(counts)
+        .filter(([_, count]) => count === maxCount)
+        .map(([value]) => value);
 
-      if (countValues.length === 0) {
-        setWinningValue(null);
-        return;
+      let winning: string;
+      if (majorityVotes.length === 1) {
+        // Clear majority
+        winning = majorityVotes[0];
+      } else {
+        // Tie: pick the highest value (numeric if possible, else lexicographic)
+        winning = majorityVotes.sort((a, b) => {
+          const aNum = Number(a);
+          const bNum = Number(b);
+          const aIsNum = !isNaN(aNum);
+          const bIsNum = !isNaN(bNum);
+          if (aIsNum && bIsNum) return bNum - aNum;
+          if (aIsNum) return -1;
+          if (bIsNum) return 1;
+          return b.localeCompare(a);
+        })[0];
       }
-
-      const averageCount =
-        countValues.reduce((sum, count) => sum + count, 0) / countValues.length;
-
-      const differences = uniqueVoteValues.map((value) => ({
-        value,
-        count: counts[value],
-        diff: Math.abs(counts[value] - averageCount),
-      }));
-
-      const minDifference = Math.min(...differences.map((d) => d.diff));
-
-      let closestValues = differences.filter((d) => d.diff === minDifference);
-
-      if (closestValues.length > 1) {
-        const maxCount = Math.max(...closestValues.map((v) => v.count));
-        closestValues = closestValues.filter((v) => v.count === maxCount);
-
-        if (closestValues.length > 1) {
-          closestValues.sort((a, b) => {
-            const aIsNum = !isNaN(Number(a.value));
-            const bIsNum = !isNaN(Number(b.value));
-
-            if (aIsNum && !bIsNum) return 1;
-            if (!aIsNum && bIsNum) return -1;
-            if (aIsNum && bIsNum) return Number(b.value) - Number(a.value);
-            return b.value.localeCompare(a.value);
-          });
-        }
-      }
-
-      setWinningValue(closestValues[0].value);
+      setWinningValue(winning);
     } else {
       setWinningValue(null);
     }
@@ -261,6 +263,16 @@ const Room = (): JSX.Element => {
           >
             Room: {roomId}
           </Typography>
+          {isRevealed && currentRoundLabel && (
+            <Typography
+              variant="subtitle1"
+              color="secondary"
+              sx={{ fontWeight: 500, ml: 2 }}
+              aria-label="Current round label"
+            >
+              Round: {currentRoundLabel}
+            </Typography>
+          )}
           <Stack direction="row" spacing={1}>
             <IconButton
               onClick={() => copyToClipboard(roomUrl)}
@@ -405,29 +417,39 @@ const Room = (): JSX.Element => {
                         variant={participant.vote ? "filled" : "outlined"}
                         size="small"
                         sx={{
-                          minWidth: "40px",
-                          fontWeight: 600,
-                          transition: "all 0.3s ease",
+                          minWidth: "44px",
+                          fontWeight: 700,
+                          fontSize: '1.05rem',
+                          letterSpacing: 0.5,
+                          transition: "all 0.3s cubic-bezier(.4,0,.2,1)",
+                          boxShadow: isRevealed && participant.vote === winningValue ? '0 2px 8px #22c55e55' : undefined,
                           ...(isRevealed && {
                             bgcolor:
                               participant.vote === winningValue
-                                ? "success.light"
-                                : "primary.light",
-                            color:
-                              participant.vote === winningValue
-                                ? "success.contrastText"
-                                : "primary.contrastText",
+                                ? (theme) => theme.palette.mode === 'dark' ? '#22c55e' : '#5bc254'
+                                : (theme) => theme.palette.mode === 'dark' ? '#2563eb' : '#2563eb',
+                            color: '#fff',
+                            border: 'none',
                           }),
                           ...(!isRevealed &&
                             participant.vote && {
-                              bgcolor: "secondary.light",
-                              color: "secondary.contrastText",
+                              bgcolor: (theme) => theme.palette.mode === 'dark' ? '#334155' : '#e0e7ef',
+                              color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#2563eb',
+                              border: 'none',
                             }),
                           ...(!participant.vote && {
-                            borderColor: "grey.400",
-                            color: "grey.600",
+                            borderColor: 'grey.400',
+                            color: (theme) => theme.palette.mode === 'dark' ? '#cbd5e1' : 'grey.600',
+                            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1e293b' : 'transparent',
                           }),
                         }}
+                        aria-label={
+                          isRevealed
+                            ? `Vote: ${participant.vote ?? 'No vote'}`
+                            : participant.vote
+                            ? 'Voted'
+                            : 'Not voted'
+                        }
                       />
                     </Box>
                   </motion.div>
@@ -471,11 +493,8 @@ const Room = (): JSX.Element => {
               maxWidth: "1400px",
               margin: "0 auto",
               p: 3,
-              bgcolor: "background.paper",
               backdropFilter: "blur(10px)",
               borderRadius: 2,
-              // boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-              // border: "1px solid",
               borderColor: "divider",
               boxSizing: "border-box",
             }}
@@ -483,28 +502,48 @@ const Room = (): JSX.Element => {
             {["1", "2", "3", "5", "8", "13", "21", "?", "☕"].map((value) => (
               <motion.div
                 key={value}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.96 }}
               >
                 <Button
                   fullWidth
                   variant={vote === value ? "contained" : "outlined"}
-                  color={vote === value ? "secondary" : "primary"}
+                  color={vote === value ? "primary" : "secondary"}
                   onClick={() => handleVote(value)}
                   disabled={isRevealed}
                   sx={{
-                    height: "60px",
-                    fontSize: "1rem",
-                    fontWeight: 600,
-                    boxShadow: vote === value ? "0 4px 12px rgba(0,0,0,0.2)" : "none",
-                    backgroundColor: vote === value ? "#5bc254" : undefined,
-                    borderColor: vote === value ? "#5bc254" : undefined,
-                    color: vote === value ? "#fff" : undefined,
+                    height: "64px",
+                    fontSize: "1.15rem",
+                    fontWeight: 700,
+                    letterSpacing: 1,
+                    borderWidth: 2,
+                    borderColor: vote === value ? (theme) => theme.palette.primary.main : (theme) => theme.palette.divider,
+                    boxShadow: vote === value ? "0 6px 18px rgba(34,197,94,0.18)" : "none",
+                    background: vote === value
+                      ? (theme) => theme.palette.mode === 'dark'
+                        ? 'linear-gradient(90deg,#22c55e 0%,#2563eb 100%)'
+                        : 'linear-gradient(90deg,#5bc254 0%,#2563eb 100%)'
+                      : (theme) => theme.palette.background.paper,
+                    color: vote === value
+                      ? (theme) => theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.contrastText
+                      : (theme) => theme.palette.text.primary,
+                    transition: 'all 0.18s cubic-bezier(.4,0,.2,1)',
                     '&:hover': {
-                      backgroundColor: vote === value ? "#4ea746" : undefined,
-                      color: vote === value ? "#fff" : undefined,
+                      background: vote === value
+                        ? (theme) => theme.palette.mode === 'dark'
+                          ? 'linear-gradient(90deg,#16a34a 0%,#1d4ed8 100%)'
+                          : 'linear-gradient(90deg,#4ea746 0%,#1d4ed8 100%)'
+                        : (theme) => theme.palette.action.hover,
+                      color: vote === value
+                        ? (theme) => theme.palette.primary.contrastText
+                        : (theme) => theme.palette.text.primary,
+                      borderColor: vote === value
+                        ? (theme) => theme.palette.primary.dark
+                        : (theme) => theme.palette.divider,
                     },
+                    outline: vote === value ? '2px solid #22c55e' : undefined,
                   }}
+                  aria-label={`Vote ${value}`}
                 >
                   {value}
                 </Button>
