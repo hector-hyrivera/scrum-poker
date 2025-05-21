@@ -19,9 +19,8 @@ RUN npm run build
 # Expose port
 EXPOSE 3001
 
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --spider -q http://localhost:3001/health || exit 1
+# Set NODE_ENV
+ENV NODE_ENV=production
 
-# Start the server
-CMD ["npm", "start"]
+# Start the server using the compiled JavaScript
+CMD ["node", "dist/index.js"]
