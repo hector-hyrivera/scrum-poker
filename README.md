@@ -24,7 +24,7 @@ This application has been migrated from Socket.IO to Cloudflare Workers:
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 - Cloudflare account (for deployment)
 - Wrangler CLI
@@ -70,44 +70,52 @@ npm run db:migrate:local
 ### 4. Development
 
 ### Prerequisites
+
 - Node.js 18+ and npm
 - Cloudflare account (for Workers deployment)
 
 ### Setup
 
 1. **Clone the repository:**
+
    ```bash
    git clone <repository-url>
    cd scrum-poker
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    cd workers && npm install
    ```
 
 3. **Configure environment (Important for CORS):**
-   
+
    Copy the example environment file:
+
    ```bash
    cp env.example .env
    ```
-   
+
    **For development**, we recommend using the deployed backend to avoid CORS issues:
+
    ```bash
    # .env
    VITE_SOCKET_URL=https://scrum-poker.rivera-family.workers.dev
    ```
-   
+
    **Alternative**: If you want to run everything locally, you can use:
+
    ```bash
    # .env  
    VITE_SOCKET_URL=http://localhost:8787
    ```
+
    But note that this may cause CORS issues when the frontend tries to connect to the local Workers server.
 
 4. **Deploy Cloudflare Workers (recommended first step):**
+
    ```bash
    cd workers
    wrangler login  # If not already logged in
@@ -115,6 +123,7 @@ npm run db:migrate:local
    ```
 
 5. **Start the development server:**
+
    ```bash
    npm run dev
    ```
@@ -124,15 +133,18 @@ The frontend will be available at `http://localhost:5173` and will connect to ei
 ### Troubleshooting CORS Issues
 
 If you encounter CORS errors like:
-```
+
+```bash
 Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://localhost:8787/api/rooms
 ```
 
 This typically happens when:
+
 1. The frontend is trying to connect to a local Workers server that doesn't have proper CORS headers
 2. The environment variables are not properly set
 
 **Solution**: Use the deployed backend for development by setting:
+
 ```bash
 # .env
 VITE_SOCKET_URL=https://scrum-poker.rivera-family.workers.dev
@@ -198,7 +210,7 @@ import { createRoom, joinRoom, vote, revealVotes, resetVotes } from './socket';
 
 ## Project Structure
 
-```
+```plaintext
 ├── src/                    # Frontend React application
 │   ├── components/         # React components
 │   │   ├── cloudflare-client.ts # Cloudflare Workers client
