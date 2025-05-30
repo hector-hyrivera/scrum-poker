@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
 import Home from './components/Home';
 const Room = React.lazy(() => import('./components/Room'));
+const ConnectionStatus = React.lazy(() => import('./components/ConnectionStatus'));
 import './App.css'
 import { CssBaseline, Switch, FormControlLabel } from '@mui/material';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
@@ -116,6 +117,9 @@ function App(): JSX.Element {
           } />
         </Routes>
       </Router>
+      <Suspense fallback={null}>
+        <ConnectionStatus />
+      </Suspense>
     </ThemeProvider>
   );
 }

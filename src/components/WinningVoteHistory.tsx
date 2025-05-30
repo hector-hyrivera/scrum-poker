@@ -1,37 +1,17 @@
-import { useState, type JSX } from 'react';
+import { type JSX } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Chip, Stack } from '@mui/material';
-import { useSocketEvent } from './use-socket-event';
+import { VoteHistoryEntry } from '../socket';
 
-/**
- * Represents a single entry in the vote history.
- */
-interface VoteHistoryEntry {
-  id: string;
-  votes: { name: string; vote: string | null; sessionId: string }[];
-  participants: number;
-  winningCard: string;
-  timestamp: number;
+interface WinningVoteHistoryProps {
+  voteHistory: VoteHistoryEntry[];
 }
 
 /**
  * Displays the history of winning votes for each round.
  * @returns {JSX.Element | null}
  */
-export function WinningVoteHistory(): JSX.Element | null {
-  const [history, setHistory] = useState<VoteHistoryEntry[]>([]);
-
-  const handleUpdateWinningVoteHistory = (updatedHistory: VoteHistoryEntry[]) => {
-    setHistory(updatedHistory);
-  };
-
-  const handleResetVotes = () => {
-    // Do not clear history on reset
-  };
-
-  useSocketEvent('updateWinningVoteHistory', handleUpdateWinningVoteHistory);
-  useSocketEvent('votesReset', handleResetVotes);
-
-  if (!history.length) return null;
+export function WinningVoteHistory({ voteHistory }: WinningVoteHistoryProps): JSX.Element | null {
+  if (!voteHistory.length) return null;
 
   return (
     <TableContainer
@@ -47,19 +27,21 @@ export function WinningVoteHistory(): JSX.Element | null {
             <TableCell>Round</TableCell>
             <TableCell>Participants</TableCell>
             <TableCell>Winning Card</TableCell>
+            <TableCell>Winner</TableCell>
             <TableCell>Votes</TableCell>
             <TableCell>Time</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {history.map((entry) => (
+          {voteHistory.map((entry: VoteHistoryEntry) => (
             <TableRow key={entry.id}>
               <TableCell>{entry.id}</TableCell>
               <TableCell>{entry.participants}</TableCell>
               <TableCell>{entry.winningCard}</TableCell>
+              <TableCell>{entry.winnerName || '-'}</TableCell>
               <TableCell>
                 <Stack direction="row" spacing={1}>
-                  {entry.votes.map((v, idx) => (
+                  {entry.votes.map((v: any, idx: number) => (
                     <Chip key={v.sessionId + idx} label={`${v.name}: ${v.vote ?? '-'}`} size="small" />
                   ))}
                 </Stack>

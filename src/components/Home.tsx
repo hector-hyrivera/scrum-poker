@@ -68,7 +68,6 @@ export function Home(): JSX.Element {
     }
     try {
       const { roomId } = await createRoom(name);
-      await joinRoom(roomId, name);
       navigate(`/room/${roomId}`, { state: { name } });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create room");

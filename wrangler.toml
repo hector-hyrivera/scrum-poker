@@ -1,0 +1,35 @@
+name = "scrum-poker"
+main = "workers/src/index.ts"
+compatibility_date = "2024-01-01"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = [ "RoomObject" ]
+
+[[durable_objects.bindings]]
+name = "ROOM_OBJECT"
+class_name = "RoomObject"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "scrum-poker-db"
+database_id = "e1f340c1-a93f-40ae-ba96-bfe43cf0cd86"
+
+[vars]
+ENVIRONMENT = "production"
+VITE_SOCKET_URL = "https://scrum-poker.rivera-family.workers.dev"
+NODE_ENV = "production"
+DEV = "false"
+
+[env.production]
+name = "scrum-poker"
+vars = { ENVIRONMENT = "production" }
+
+[env.development]
+name = "scrum-poker-dev"
+vars = { ENVIRONMENT = "development" } 

@@ -21,13 +21,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-    "types": [
-      "node",
-      "vitest",
-      "react",
-      "react-dom"
-    ]
+    "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "test"]
+  "include": ["src"]
 }
