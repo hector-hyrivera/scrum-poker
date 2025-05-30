@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, JSX } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { socket } from "../socket";
+import { socket, vote as castVote, revealVotes, resetVotes, getCurrentSessionId, joinRoom, VoteHistoryEntry } from "../socket";
 import { useSocketEvent } from "./use-socket-event";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -27,6 +27,7 @@ interface Participant {
   id: string;
   name: string;
   vote: string | null;
+  sessionId: string;
 }
 
 /**
@@ -64,6 +65,7 @@ const Room = (): JSX.Element => {
   const [winningValue, setWinningValue] = useState<string | null>(null);
   const [customRoundId, setCustomRoundId] = useState("");
   const [currentRoundLabel, setCurrentRoundLabel] = useState<string>("");
+  const [voteHistory, setVoteHistory] = useState<VoteHistoryEntry[]>([]);
 
   const name = location.state?.name;
 
@@ -71,11 +73,12 @@ const Room = (): JSX.Element => {
     (value: string) => {
       if (!roomId || !name) return;
       setVote(value);
-      socket.emit("vote", { roomId, vote: value });
+      castVote(roomId, value);
 
       if (isRevealed) {
+        const currentSessionId = getCurrentSessionId();
         const updatedParticipants = participants.map((p) =>
-          p.id === socket.id ? { ...p, vote: value } : p
+          p.sessionId === currentSessionId ? { ...p, vote: value } : p
         );
         setParticipants(updatedParticipants);
       }
@@ -86,39 +89,68 @@ const Room = (): JSX.Element => {
   const handleReveal = useCallback(() => {
     if (!roomId) return;
     // If user entered a custom round label, use it, else undefined
-    socket.emit("reveal", { roomId, roundId: customRoundId.trim() || undefined });
+    revealVotes(roomId, customRoundId.trim() || undefined);
     setCustomRoundId("");
   }, [roomId, customRoundId]);
 
   const handleReset = useCallback(() => {
     if (!roomId) return;
-    setVote(null);
-    setWinningValue(null);
-    setParticipants((prevParticipants) =>
-      prevParticipants.map((participant) => ({ ...participant, vote: null }))
-    );
-    socket.emit("reset", roomId);
+    // Don't optimistically update state - let the server response handle it
+    // This ensures vote history is preserved correctly
+    resetVotes(roomId);
   }, [roomId]);
 
   // Socket event handlers
-  function handleUserJoined(state: { users: Participant[]; revealed: boolean }) {
+  function handleUserJoined(state: { users: Participant[]; revealed: boolean; winningVoteHistory?: VoteHistoryEntry[] }) {
     setParticipants(state.users);
     setIsRevealed(state.revealed);
+    // Only update vote history if server sends non-empty history
+    if (state.winningVoteHistory && state.winningVoteHistory.length > 0) {
+      setVoteHistory(state.winningVoteHistory);
+    }
+    
+    // Update current user's vote state
+    const currentSessionId = getCurrentSessionId();
+    const currentUser = state.users.find(u => u.sessionId === currentSessionId);
+    if (currentUser) {
+      setVote(currentUser.vote);
+    }
   }
-  function handleUserVoted(state: { users: Participant[]; revealed: boolean }) {
+  function handleUserVoted(state: { users: Participant[]; revealed: boolean; winningVoteHistory?: VoteHistoryEntry[] }) {
     setParticipants(state.users);
     setIsRevealed(state.revealed);
+    // Only update vote history if server sends non-empty history
+    if (state.winningVoteHistory && state.winningVoteHistory.length > 0) {
+      setVoteHistory(state.winningVoteHistory);
+    }
+    
+    // Update current user's vote state
+    const currentSessionId = getCurrentSessionId();
+    const currentUser = state.users.find(u => u.sessionId === currentSessionId);
+    if (currentUser) {
+      setVote(currentUser.vote);
+    }
   }
-  function handleVotesRevealed(state: { users: Participant[]; revealed: boolean }) {
+  function handleVotesRevealed(state: { users: Participant[]; revealed: boolean; winningVoteHistory?: VoteHistoryEntry[] }) {
     setParticipants(state.users);
     setIsRevealed(true);
+    // Always update vote history on reveal since this is when new history is created
+    if (state.winningVoteHistory) {
+      setVoteHistory(state.winningVoteHistory);
+    }
   }
-  function handleVotesReset(state: { users: Participant[] }) {
-    console.log("Votes reset");
+  function handleVotesReset(state: { users: Participant[]; revealed: boolean; winningVoteHistory?: VoteHistoryEntry[] }) {
     setParticipants(state.users);
-    setIsRevealed(false);
+    setIsRevealed(state.revealed);
     setVote(null);
     setWinningValue(null);
+    
+    // Preserve vote history - if server sends empty history, keep the current history
+    // This ensures vote history is never lost from the UI perspective
+    if (state.winningVoteHistory && state.winningVoteHistory.length > 0) {
+      setVoteHistory(state.winningVoteHistory);
+    }
+    // If server sends empty history, keep existing history (works around backend issue)
   }
   function handleRoomNotFound() {
     setTimeout(() => navigate("/"), 2000);
@@ -129,15 +161,16 @@ const Room = (): JSX.Element => {
   useSocketEvent<{ users: Participant[]; revealed: boolean }>("userVoted", handleUserVoted);
   useSocketEvent<{ users: Participant[]; revealed: boolean }>("votesRevealed", handleVotesRevealed);
   useSocketEvent("roomNotFound", handleRoomNotFound);
-  useSocketEvent("votesReset", handleVotesReset);
+  useSocketEvent<{ users: Participant[]; revealed: boolean }>("votesReset", handleVotesReset);
 
   // Listen for vote history updates to get the latest round label
-  useSocketEvent<{ id: string }[]>(
+  useSocketEvent<VoteHistoryEntry[]>(
     "updateWinningVoteHistory",
     (history) => {
       if (history && history.length > 0) {
         const last = history[history.length - 1];
         setCurrentRoundLabel(last.id);
+        setVoteHistory(history);
       }
     }
   );
@@ -149,9 +182,29 @@ const Room = (): JSX.Element => {
       navigate("/");
       return;
     }
-    const sessionId = localStorage.getItem("sessionId");
-    socket.emit("joinRoom", { roomId, name, sessionId });
-    socket.emit("getRoomState", roomId);
+    
+    // Use the joinRoom method instead of socket.emit
+    joinRoom(roomId, name)
+      .then((state) => {
+        setParticipants(state.users);
+        setIsRevealed(state.revealed);
+        if (state.winningVoteHistory && state.winningVoteHistory.length > 0) {
+          setCurrentRoundLabel(state.winningVoteHistory[state.winningVoteHistory.length - 1].id);
+          setVoteHistory(state.winningVoteHistory);
+        }
+        
+        // Set current user's vote state
+        const currentSessionId = getCurrentSessionId();
+        const currentUser = state.users.find(u => u.sessionId === currentSessionId);
+        if (currentUser) {
+          setVote(currentUser.vote);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to join room:', error);
+        navigate("/");
+      });
+
     function handleRoomState(state: { users: Participant[]; revealed: boolean; winningValue?: string | null; history?: { id: string }[] }) {
       setParticipants(state.users);
       setIsRevealed(state.revealed);
@@ -396,15 +449,15 @@ const Room = (): JSX.Element => {
                       <Typography
                         variant="body1"
                         sx={{
-                          fontWeight: participant.id === socket.id ? 700 : 400,
+                          fontWeight: participant.sessionId === getCurrentSessionId() ? 700 : 400,
                           color:
-                            participant.id === socket.id
+                            participant.sessionId === getCurrentSessionId()
                               ? "primary.dark"
                               : "text.secondary",
                         }}
                       >
                         {participant.name}{" "}
-                        {participant.id === socket.id && "(You)"}
+                        {participant.sessionId === getCurrentSessionId() && "(You)"}
                       </Typography>
                       <Chip
                         label={
@@ -630,7 +683,7 @@ const Room = (): JSX.Element => {
         </Paper>
       </Box>
       <Suspense fallback={<div>Loading history...</div>}>
-        <WinningVoteHistory />
+        <WinningVoteHistory voteHistory={voteHistory} />
       </Suspense>
       <Footer />
     </Box>

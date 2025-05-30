@@ -1,135 +1,226 @@
-# SCRUM Planning Poker
-[![License](LICENSE)](LICENSE) [![Node Version](https://img.shields.io/badge/node-16%2B-brightgreen)](https://nodejs.org/)
+# Scrum Poker Application
 
-A real-time SCRUM planning poker application that allows teams to estimate user stories collaboratively. Team members can join rooms, vote on estimates, and reveal results together.
-
-## Table of Contents
-
-- [Features](#features)
-- [Screenshots](#screenshots)
-- [Getting Started](#getting-started)
-- [Usage](#usage)
-- [Configuration](#configuration)
-- [Development](#development)
-- [Contributing](#contributing)
-- [License](#license)
+A real-time Scrum Poker application built with React and powered by Cloudflare Workers with Durable Objects and D1 database.
 
 ## Features
 
-- Create ephemeral rooms with auto-generated IDs
-- Join rooms with just a username
-- Vote on estimates using standard planning poker values
-- Hidden votes until reveal
-- Reset voting for new rounds
-- Real-time updates using WebSocket
-- Clean and modern UI
-- Track history of winning votes
+- Real-time voting with WebSocket connections
+- Persistent vote history stored in D1 database
+- Room-based sessions with unique room IDs
+- Automatic reconnection handling
+- Dark/light theme support
+- Responsive Material-UI design
 
-## Screenshots
+## Architecture
 
-<!-- Add screenshots or GIFs here -->
+This application has been migrated from Socket.IO to Cloudflare Workers:
 
-## Getting Started
+- **Frontend**: React with TypeScript, Material-UI, and Vite
+- **Backend**: Cloudflare Workers with Durable Objects for real-time state management
+- **Database**: Cloudflare D1 (SQLite) for persistent storage
+- **Real-time Communication**: WebSockets via Cloudflare Workers
+
+## Setup Instructions
 
 ### Prerequisites
 
-- Node.js 16+ and npm
-- Docker (optional for containerized deployment)
+- Node.js 18+ 
+- npm or yarn
+- Cloudflare account (for deployment)
+- Wrangler CLI
 
-### Installation
+### 1. Install Dependencies
 
-1. Clone the repository:
+```bash
+# Install frontend dependencies
+npm install
 
+# Install Cloudflare Workers dependencies
+npm run workers:install
+```
+
+### 2. Set up Cloudflare Workers
+
+```bash
+# Install Wrangler CLI globally if not already installed
+npm install -g wrangler
+
+# Login to Cloudflare
+wrangler login
+
+# Create D1 database
+cd workers
+wrangler d1 create scrum-poker-db
+
+# Update wrangler.toml with your database ID
+# Copy the database_id from the output above and update wrangler.toml
+```
+
+### 3. Database Setup
+
+```bash
+# Run database migrations
+cd workers
+npm run db:migrate
+
+# For local development, also run:
+npm run db:migrate:local
+```
+
+### 4. Development
+
+### Prerequisites
+- Node.js 18+ and npm
+- Cloudflare account (for Workers deployment)
+
+### Setup
+
+1. **Clone the repository:**
    ```bash
    git clone <repository-url>
    cd scrum-poker
    ```
 
-2. Install frontend dependencies:
-
+2. **Install dependencies:**
    ```bash
    npm install
+   cd workers && npm install
    ```
 
-3. Install backend dependencies:
-
+3. **Configure environment (Important for CORS):**
+   
+   Copy the example environment file:
    ```bash
-   cd server
-   npm install
+   cp env.example .env
+   ```
+   
+   **For development**, we recommend using the deployed backend to avoid CORS issues:
+   ```bash
+   # .env
+   VITE_SOCKET_URL=https://scrum-poker.rivera-family.workers.dev
+   ```
+   
+   **Alternative**: If you want to run everything locally, you can use:
+   ```bash
+   # .env  
+   VITE_SOCKET_URL=http://localhost:8787
+   ```
+   But note that this may cause CORS issues when the frontend tries to connect to the local Workers server.
+
+4. **Deploy Cloudflare Workers (recommended first step):**
+   ```bash
+   cd workers
+   wrangler login  # If not already logged in
+   npm run deploy
    ```
 
-### Running the Application
-
-#### Local Development
-
-1. Start the backend server:
-
+5. **Start the development server:**
    ```bash
-   cd server
    npm run dev
    ```
 
-2. In a new terminal, start the frontend development server:
+The frontend will be available at `http://localhost:5173` and will connect to either the deployed Workers (recommended) or local Workers at `http://localhost:8787`.
 
-   ```bash
-   # From the root directory
-   npm run dev
-   ```
+### Troubleshooting CORS Issues
 
-3. Open your browser and navigate to `http://localhost:3000`
+If you encounter CORS errors like:
+```
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://localhost:8787/api/rooms
+```
 
-#### Using Docker
+This typically happens when:
+1. The frontend is trying to connect to a local Workers server that doesn't have proper CORS headers
+2. The environment variables are not properly set
 
-1. Build and start the containers:
+**Solution**: Use the deployed backend for development by setting:
+```bash
+# .env
+VITE_SOCKET_URL=https://scrum-poker.rivera-family.workers.dev
+```
 
-   ```bash
-   docker-compose up --build
-   ```
+### Local Socket URL Configuration
 
-2. Access the application at `http://localhost:8085`
+The application automatically detects the appropriate API URL based on the environment:
 
-## Usage
+```typescript
+export const getSocketUrl = (): string => {
+  // For development
+  if (import.meta.env.DEV) {
+    return 'https://scrum-poker.rivera-family.workers.dev';
+  }
+  
+  // For production - replace with your deployed Workers URL
+  return 'https://scrum-poker.rivera-family.workers.dev';
+};
+```
 
-1. On the home page, click "Create New Room" to generate a new planning poker session.
-2. Share the room URL with your team members.
-3. Each team member enters their name to join the room.
-4. Select your estimate by clicking on a number.
-5. When everyone has voted, click "Reveal Votes" to show all estimates.
-6. Use "Reset Votes" to start a new round.
+## Deployment
 
-## Configuration
+### Deploy Cloudflare Workers
 
-For detailed configuration, see [docs/configuration.md](docs/configuration.md).
+```bash
+cd workers
 
-## Development
+# Deploy to development environment
+npm run deploy
 
-- **Frontend**: React with TypeScript, Vite, Material UI, Framer Motion, and Tailwind CSS
-- **Backend**: Node.js with Express, Socket.IO, and TypeScript
-- **Styling**: Tailwind CSS and Material UI
+# Deploy to production environment
+npm run deploy:production
+```
 
-### Additional Commands
+### Deploy Frontend
 
-- Lint the code:
+The frontend can be deployed to any static hosting service (Vercel, Netlify, Cloudflare Pages, etc.).
 
-  ```bash
-  npm run lint
-  ```
+```bash
+# Build the frontend
+npm run build
 
-- Preview the production build:
+# The dist/ folder contains the built application
+```
 
-  ```bash
-  npm run preview
-  ```
+## Migration from Socket.IO
+
+This application has been successfully migrated from Socket.IO to Cloudflare Workers. The key changes include:
+
+1. **Real-time Communication**: Replaced Socket.IO with native WebSockets via Cloudflare Workers
+2. **State Management**: Moved from in-memory state to Durable Objects with D1 persistence
+3. **Scalability**: Leveraged Cloudflare's global edge network for better performance
+4. **Data Persistence**: Added proper database storage for vote history and room state
+
+### API Compatibility
+
+The frontend API remains the same, so existing components work without changes:
+
+```typescript
+import { createRoom, joinRoom, vote, revealVotes, resetVotes } from './socket';
+```
+
+## Project Structure
+
+```
+├── src/                    # Frontend React application
+│   ├── components/         # React components
+│   │   ├── cloudflare-client.ts # Cloudflare Workers client
+│   │   └── socket.ts          # API compatibility layer
+│   ├── workers/               # Cloudflare Workers
+│   │   ├── src/
+│   │   │   ├── index.ts       # Main worker entry point
+│   │   │   ├── room-object.ts # Durable Object implementation
+│   │   │   └── types.ts       # TypeScript types
+│   │   └── migrations/        # D1 database migrations
+│   └── wrangler.toml         # Cloudflare Workers configuration
+└── wrangler.toml         # Cloudflare Workers configuration
+```
 
 ## Contributing
 
-Contributions are welcome! Please follow these guidelines:
-
-- Use feature/bugfix/hotfix branch naming conventions
-- Write clear, descriptive commit messages
-- Ensure code passes linting.
-- See [CONTRIBUTING.md](CONTRIBUTING.md) if available
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test locally with both frontend and workers
+5. Submit a pull request
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+MIT License - see LICENSE file for details.
