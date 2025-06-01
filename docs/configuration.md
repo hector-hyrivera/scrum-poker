@@ -13,19 +13,27 @@ This document provides detailed information on the configuration files and setti
 - Scans all relevant files for purging unused styles.
 
 ## TypeScript
-- Strict mode enabled for both frontend and backend (`tsconfig.app.json`, `tsconfig.node.json`).
+- Strict mode enabled for both frontend and workers (`tsconfig.app.json`, `tsconfig.node.json`).
 - Enforces consistent file name casing for cross-platform safety.
+- Workers have their own TypeScript configuration in `workers/tsconfig.json`.
 
 ## Vite
 - Minimal config with React plugin.
 - Supports fast local development and production builds.
 - See `vite.config.ts` for details.
 
+## Cloudflare Workers
+- Configuration in `wrangler.toml` for Workers deployment.
+- Durable Objects and D1 database bindings.
+- Custom domain routing and CORS settings.
+
 ## Environment Variables
 - `.env` file in the root directory for shared settings.
-- Backend/server-specific environment variables documented in `server/.env.example` (if available).
+- Cloudflare Workers environment variables configured in `wrangler.toml`.
 - Common variables:
-  - `PORT`: Port for backend server (default: 8080)
-  - `VITE_API_URL`: API endpoint for frontend
+  - `ENVIRONMENT`: "production" or "development"
+  - `VITE_SOCKET_URL`: WebSocket URL for the application
+  - `NODE_ENV`: Node environment
+  - `DEV`: Development flag
 
 > **Note:** Update this document as new configuration options are added.

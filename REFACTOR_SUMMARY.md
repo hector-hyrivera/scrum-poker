@@ -196,16 +196,16 @@ npm run build          # Build frontend for static hosting
 
 ## Rollback Plan
 
-Original Socket.IO implementation preserved:
+The migration to Cloudflare Workers is now complete and the old architecture has been cleaned up:
 
-- `src/socket.ts.bak` - Original client
-- `server/` directory - Original Node.js server
-- `package.json.bak` - Original dependencies
+- `src/socket.ts.bak` - Original client (if preserved)
+- ~~`server/` directory~~ - **Removed during cleanup**
+- ~~`package.json.bak`~~ - **No longer needed**
 
-To rollback: restore backups and reinstall Socket.IO dependencies.
+**Note**: The original Node.js/Express server has been permanently removed as part of the architecture cleanup. The application now exclusively uses Cloudflare Workers.
 
 ---
 
 ## Migration Status: ✅ COMPLETE
 
-The application has been successfully migrated to Cloudflare Workers while maintaining full functionality and improving performance, reliability, and scalability.
+The application has been successfully migrated to Cloudflare Workers while maintaining full functionality and improving performance, reliability, and scalability. Legacy files have been cleaned up.

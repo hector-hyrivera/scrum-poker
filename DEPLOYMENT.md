@@ -67,14 +67,4 @@ The application uses these environment variables:
 **Deployment errors**:
 - Check `wrangler whoami` to ensure you're authenticated
 - Verify your account has the necessary permissions
-- Check the `wrangler.toml` configuration
-
-### Alternative Deployment (Docker)
-
-If you prefer Docker deployment, you can use the existing `compose.yaml`:
-
-1. Update the domain in `nginx.conf`
-2. Build and run: `docker-compose up --build`
-3. Configure your reverse proxy/load balancer to point to your server
-
-Note: The Docker setup uses a separate Node.js backend in the `server/` directory, which conflicts with the Cloudflare Workers setup. Choose one approach. 
+- Check the `wrangler.toml` configuration 
