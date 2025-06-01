@@ -20,11 +20,11 @@ export const getSocketUrl = (): string => {
   
   // For local development, use the deployed backend to avoid CORS issues
   if (isDev) {
-    console.log('Using deployed backend for local development:', 'https://scrum-poker.rivera-family.workers.dev');
-    return 'https://scrum-poker.rivera-family.workers.dev';
+    console.log('Using deployed backend for local development:', 'https://scrum-poker.hyrivera.com');
+    return 'https://scrum-poker.hyrivera.com';
   }
   
   // For production (including Cloudflare Pages), always use the deployed backend
-  console.log('Using deployed backend (production):', 'https://scrum-poker.rivera-family.workers.dev');
-  return 'https://scrum-poker.rivera-family.workers.dev';
+  console.log('Using deployed backend (production):', 'https://scrum-poker.hyrivera.com');
+  return 'https://scrum-poker.hyrivera.com';
 };
