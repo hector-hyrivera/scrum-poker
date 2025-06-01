@@ -1,6 +1,7 @@
 # DNS Setup Guide for Custom Domain
 
 ## Problem
+
 Your custom domain `scrum-poker.hyrivera.com` isn't working because there's no DNS record pointing to your Cloudflare Worker.
 
 ## Solution
@@ -8,7 +9,7 @@ Your custom domain `scrum-poker.hyrivera.com` isn't working because there's no D
 ### Step 1: Add DNS Record in Cloudflare Dashboard
 
 1. **Go to Cloudflare Dashboard**:
-   - Visit: https://dash.cloudflare.com/
+   - Visit: <https://dash.cloudflare.com/>
    - Select domain: `hyrivera.com`
 
 2. **Navigate to DNS**:
@@ -18,7 +19,8 @@ Your custom domain `scrum-poker.hyrivera.com` isn't working because there's no D
    Click **Add record** and use these settings:
 
    **Option A - AAAA Record (Recommended)**:
-   ```
+
+   ```yaml
    Type: AAAA
    Name: scrum-poker
    IPv6 address: 100::
@@ -27,7 +29,8 @@ Your custom domain `scrum-poker.hyrivera.com` isn't working because there's no D
    ```
 
    **Option B - A Record**:
-   ```
+
+   ```yaml
    Type: A
    Name: scrum-poker
    IPv4 address: 192.0.2.1
@@ -36,7 +39,8 @@ Your custom domain `scrum-poker.hyrivera.com` isn't working because there's no D
    ```
 
    **Option C - CNAME Record**:
-   ```
+
+   ```yaml
    Type: CNAME
    Name: scrum-poker
    Target: scrum-poker.workers.dev
@@ -75,13 +79,15 @@ pnpm run deploy:production
 
 ## Verification
 
-### Check DNS Resolution:
+### Check DNS Resolution
+
 ```bash
 dig scrum-poker.hyrivera.com
 # Should show an A or AAAA record
 ```
 
-### Check HTTP Response:
+### Check HTTP Response
+
 ```bash
 curl -I https://scrum-poker.hyrivera.com
 # Should return HTTP 200 or redirect
@@ -89,24 +95,28 @@ curl -I https://scrum-poker.hyrivera.com
 
 ## Troubleshooting
 
-**Still not working?**
+### Still not working?
+
 1. Ensure the DNS record has **Proxy status: Proxied** (🟠 orange cloud)
 2. Wait 10-15 minutes for DNS propagation
 3. Clear your browser cache
 4. Try incognito/private browsing mode
 
-**Error "This domain is not registered"**
+### Error "This domain is not registered"
+
 - The custom domain hasn't been added to the Worker
 - Follow Step 2 above
 
-**Error 1001 or 522**
+### Error 1001 or 522
+
 - DNS record exists but isn't proxied
 - Make sure the orange cloud (🟠) is enabled in DNS settings
 
 ## Current Status
 
 Your worker is deployed and working at:
+
 - ✅ `https://scrum-poker.workers.dev` (working)
 - ❌ `https://scrum-poker.hyrivera.com` (needs DNS record)
 
-Once you add the DNS record, both URLs will work! 
+Once you add the DNS record, both URLs will work!
